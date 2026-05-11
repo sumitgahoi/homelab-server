@@ -44,7 +44,7 @@ Document **hardware requirements** and **logical/network design** for a single *
    - **Private** — trusted devices; **full internet** (subject to normal firewall rules).  
    - **Guest** — untrusted visitors; **internet allowed**; **tighter** isolation from **private** (policy detail in VyOS).  
    - **IoT** — **no internet** (default: **drop forward** from IoT to **WAN**); may allow **limited** access to **private** (e.g. DNS to **Pi-hole** only) — document exceptions when implemented.  
-   *(Numeric **VLAN IDs** and **subnets** are open — see `docs/network-and-services.md`.)*  
+   *Numeric **VLAN IDs**, **IPv4 subnets**, and **`vmbr-svc` addresses** are **locked** in **`docs/network-and-services.md`** (§ VLANs and IPv4 layout, § Internal stub).*  
 6. **Network stack (software)**  
    - **VyOS** — **single VM** (choice **A**, locked): **default gateway** with **2× SR-IOV VF** (WAN + LAN trunk) + **1× virtio** on **`vmbr-svc`**. **Not** split across multiple VyOS VMs for WAN/LAN roles.  
    - **Pi-hole** — LAN DNS, caching, ad/tracker blocking (forwards to chosen upstream resolvers; no separate Unbound layer); **dedicated LXC** on **`vmbr-svc`** (see `docs/network-and-services.md`).  
@@ -68,10 +68,10 @@ Document **hardware requirements** and **logical/network design** for a single *
 | Date | Topic | Outcome |
 |------|--------|---------|
 | **2026-05-11** | **VyOS topology** | **Single VyOS VM** (option **A**): one guest holds **WAN VF**, **LAN trunk VF** (private / guest / iot), and **`vmbr-svc` virtio**; no separate WAN-only / LAN-only VyOS pair. |
+| **2026-05-11** | **VLAN IDs, IPv4 layout, `vmbr-svc` stub** | **Locked** in **`docs/network-and-services.md`**: VLANs **10 / 20 / 30**, subnets **`10.10.10.0/24`**, **`10.10.20.0/24`**, **`10.10.30.0/24`**, internal **`10.10.0.0/24`** (VyOS **`10.10.0.1`**, Pi-hole **`10.10.0.53`**, Tailscale example **`10.10.0.52`**), **tagged-only** LAN trunk to the switch. |
 
 ## Open decisions (fill in as you choose)
 
-- **VLAN IDs / subnets:** map **private / guest / IoT** to numeric IDs (e.g. 10 / 20 / 30) and **IPv4 prefixes**; **native vs tagged-only** on the switch trunk port.  
 - **IoT exceptions:** whether IoT may reach **Pi-hole** (or NTP only) on **private**; **mDNS** or **HA hub** exceptions.  
 - **Pi-hole upstreams:** which resolvers (e.g. Cloudflare, Quad9, ISP) and whether to use DoT/DoH from Pi-hole to upstream.
 - **Tailscale ACLs:** tags, **subnet routes** advertised by the **`tailscale` LXC**, and admin-console **ACL** intent (high level until Ansible encodes it). **Placement is locked** — dedicated LXC on **`vmbr-svc`**.
@@ -91,4 +91,5 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-10 | Documented **PF vs VF on LAN port:** **no PF1 in `vmbr`** as trunk uplink alongside VyOS **VF**; PF is **SR-IOV parent** only for this design. |
 | 2026-05-10 | **Dedicated LXC on `vmbr-svc`** (Pi-hole + Tailscale); populated **Proxmox mapping** RAM/vCPU; **Tailscale** locked to **subnet-router LXC**; IoT→Pi-hole wording, **`max_vfs` PF0 vs PF1** note, SR-IOV Pi-hole sentence, **reference topology** redraw. |
 | 2026-05-10 | **Disk layout locked:** 960 EVO = Proxmox OS; SN770 = VM/LXC + ISOs; WD Red = bulk/NAS; inventory + `hardware-requirements.md` updated. |
-| 2026-05-11 | **VyOS topology locked (A):** single gateway VM; removed from open list; **Resolved open decisions** table. |
+| 2026-05-11 | **VyOS topology locked (A):** single gateway VM; **Resolved open decisions** table. |
+| 2026-05-11 | **Agent synced:** VLAN/IPv4/`vmbr-svc` treated as **locked** per `network-and-services.md` (removed duplicate open item). |
