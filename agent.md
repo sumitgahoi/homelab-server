@@ -47,7 +47,7 @@ Document **hardware requirements** and **logical/network design** for a single *
    *Numeric **VLAN IDs**, **IPv4 subnets**, and **`vmbr-svc` addresses** are **locked** in **`docs/network-and-services.md`** (§ VLANs and IPv4 layout, § Internal stub).*  
 6. **Network stack (software)**  
    - **VyOS** — **single VM** (choice **A**, locked): **default gateway** with **2× SR-IOV VF** (WAN + LAN trunk) + **1× virtio** on **`vmbr-svc`**. **Not** split across multiple VyOS VMs for WAN/LAN roles.  
-   - **Pi-hole** — LAN DNS, caching, ad/tracker blocking (forwards to chosen upstream resolvers; no separate Unbound layer); **dedicated LXC** on **`vmbr-svc`** (see `docs/network-and-services.md`).  
+   - **Pi-hole** — LAN DNS, caching, ad/tracker blocking; **upstream DNS locked** (**DoT** to **Quad9** + **Cloudflare** — see **`docs/network-and-services.md` § Pi-hole upstream DNS**); **dedicated LXC** on **`vmbr-svc`**.  
    - **Tailscale** — mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS — see `docs/network-and-services.md`).
 
 ## Planned automation (not in repo yet)
@@ -69,11 +69,11 @@ Document **hardware requirements** and **logical/network design** for a single *
 |------|--------|---------|
 | **2026-05-11** | **VyOS topology** | **Single VyOS VM** (option **A**): one guest holds **WAN VF**, **LAN trunk VF** (private / guest / iot), and **`vmbr-svc` virtio**; no separate WAN-only / LAN-only VyOS pair. |
 | **2026-05-11** | **VLAN IDs, IPv4 layout, `vmbr-svc` stub** | **Locked** in **`docs/network-and-services.md`**: VLANs **10 / 20 / 30**, subnets **`10.10.10.0/24`**, **`10.10.20.0/24`**, **`10.10.30.0/24`**, internal **`10.10.0.0/24`** (VyOS **`10.10.0.1`**, Pi-hole **`10.10.0.53`**, Tailscale example **`10.10.0.52`**), **tagged-only** LAN trunk to the switch. |
+| **2026-05-11** | **Pi-hole upstream DNS** | **DNS-over-TLS**: **Quad9** primary (`9.9.9.9`, `149.112.112.112`, SNI `dns.quad9.net`); **Cloudflare** secondary (`1.1.1.1`, `1.0.0.1`, SNI `one.one.one.one`); **not** ISP DNS by default. See **`docs/network-and-services.md` § Pi-hole upstream DNS**. |
 
 ## Open decisions (fill in as you choose)
 
 - **IoT exceptions:** whether IoT may reach **Pi-hole** (or NTP only) on **private**; **mDNS** or **HA hub** exceptions.  
-- **Pi-hole upstreams:** which resolvers (e.g. Cloudflare, Quad9, ISP) and whether to use DoT/DoH from Pi-hole to upstream.
 - **Tailscale ACLs:** tags, **subnet routes** advertised by the **`tailscale` LXC**, and admin-console **ACL** intent (high level until Ansible encodes it). **Placement is locked** — dedicated LXC on **`vmbr-svc`**.
 
 ## Changelog
@@ -93,3 +93,4 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-10 | **Disk layout locked:** 960 EVO = Proxmox OS; SN770 = VM/LXC + ISOs; WD Red = bulk/NAS; inventory + `hardware-requirements.md` updated. |
 | 2026-05-11 | **VyOS topology locked (A):** single gateway VM; **Resolved open decisions** table. |
 | 2026-05-11 | **Agent synced:** VLAN/IPv4/`vmbr-svc` treated as **locked** per `network-and-services.md` (removed duplicate open item). |
+| 2026-05-11 | **Pi-hole upstream DNS locked:** DoT to **Quad9** + **Cloudflare**; section in `network-and-services.md`. |

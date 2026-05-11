@@ -1,6 +1,6 @@
 # Network and services — logical design
 
-High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs and IPv4 layout** are **locked** below; Pi-hole upstreams remain an open decision in `agent.md`.
+High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs, IPv4 layout, `vmbr-svc` addresses, and Pi-hole upstream DNS** are **locked** below (see also **`agent.md` § Resolved open decisions**).
 
 ## VLANs and IPv4 layout (locked)
 
@@ -24,6 +24,19 @@ High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**
 | **Pi-hole LXC (example static IP)** | `10.10.0.53` |
 
 Use these addresses in **VyOS static routes / firewall** and in **DHCP option 6 (DNS)** on **private** / **guest** as you prefer. **Re-number only if you deliberately change the plan** — update this table and Ansible vars together.
+
+## Pi-hole upstream DNS (locked)
+
+Pi-hole **forwards** queries it does not block to **recursive resolvers** over **DNS-over-TLS (DoT)** — not **plain UDP/53 to the ISP** by default (better transport privacy on the WAN path; still trust the chosen provider’s policy).
+
+| Role | Provider | IP addresses (examples) | TLS hostname (SNI) |
+|------|----------|-------------------------|---------------------|
+| **Primary** | **Quad9** | `9.9.9.9`, `149.112.112.112` | `dns.quad9.net` |
+| **Secondary** | **Cloudflare** | `1.1.1.1`, `1.0.0.1` | `one.one.one.one` |
+
+**Implementation notes (Ansible / manual):** Configure in **Pi-hole → Settings → DNS** (exact UI labels vary by Pi-hole major version). Many setups use **Custom DNS** entries in the form supported by your release (e.g. `9.9.9.9#dns.quad9.net` where `#` denotes the TLS name — **confirm** against [Pi-hole DNS documentation](https://docs.pi-hole.net/) at install time). Enable **DNS-over-TLS** only if the chosen upstream list supports it in your version.
+
+**Out of scope as default:** **ISP DNS** is **not** the default upstream; you may temporarily point Pi-hole at the ISP (or use VyOS forwarder) for **captive-portal** or **ISP-outage debugging** — document if you add a playbook toggle.
 
 ## Recommended topology — X550-T2, SR-IOV, and Proxmox bridge
 
@@ -159,7 +172,7 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 
 ### Pi-hole
 
-- **Purpose:** **LAN DNS** for clients — **blocklists**, **local DNS records**, **caching**, and **UI** for whitelist / timed “disable blocking.” Forwards non-blocked queries to **upstream resolvers** you configure (e.g. Cloudflare, Quad9, ISP); it is **not** a full recursive resolver by default (no separate Unbound required for a typical home).
+- **Purpose:** **LAN DNS** for clients — **blocklists**, **local DNS records**, **caching**, and **UI** for whitelist / timed “disable blocking.” Forwards non-blocked queries per **§ Pi-hole upstream DNS (locked)** (**DoT** to **Quad9** primary, **Cloudflare** secondary); **not** a full recursive resolver by default (no separate Unbound required for a typical home).
 - **Resources:** Light for homelab use; RAM grows with **blocklists** and **query history** — tune on **16 GB** host (see mapping table).
 - **Deployment (locked):** **Dedicated LXC** on **`vmbr-svc`** only — **static IP `10.10.0.53`** (see **§ Internal stub — `vmbr-svc`**); **not** on **private / guest / iot** VLANs at L2. DHCP on **private** (VyOS or switch) advertises **`10.10.0.53`** as DNS.
 - **VyOS integration:** Allow **private → `10.10.0.53:53`** (and **guest** if desired); optional **IoT → `10.10.0.53:53`** per firewall. Admin access to Pi-hole web UI: restrict source zones/IPs in VyOS (policy detail when implemented).
@@ -168,7 +181,7 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 
 | Flow | Notes |
 |------|--------|
-| **Client (wired VLAN or svc) → Pi-hole (`10.10.0.53`) → upstream resolvers → Internet** | DNS hits **Pi-hole’s routed IP**; upstream choice in `agent.md` open decisions. |
+| **Client (wired VLAN or svc) → Pi-hole (`10.10.0.53`) → Quad9 / Cloudflare (DoT) → Internet** | Upstreams **locked** in **§ Pi-hole upstream DNS**. |
 
 ### Tailscale
 
