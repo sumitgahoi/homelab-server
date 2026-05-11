@@ -1,6 +1,6 @@
 # Network and services — logical design
 
-High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs, IPv4 layout, `vmbr-svc` addresses, Pi-hole upstream DNS, and IoT firewall exceptions** are **locked** below (see also **`agent.md` § Resolved open decisions**).
+High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs, IPv4 layout, `vmbr-svc` addresses, Pi-hole upstream DNS, IoT firewall exceptions, and Tailscale ACLs / subnet routes** are **locked** below (see also **`agent.md` § Resolved open decisions**).
 
 ## VLANs and IPv4 layout (locked)
 
@@ -39,7 +39,7 @@ Use these addresses in **VyOS static routes / firewall** and in **DHCP option 6 
 | **Cross-VLAN mDNS / Bonjour (typ. UDP 5353)** | **DROP** | **No** **mDNS reflection** or **Bonjour** bridging between **IoT** and **private/guest**. **Same-VLAN** IoT-to-IoT stays on the **switch L2** where the AP/switch allows it; VyOS does not need to “help” discovery across VLANs. |
 | **IoT → Home Assistant or other hubs (e.g. TCP 8123)** | **DENY by default** | **No** locked exception. When a hub has a **stable IP** (often on **private**), add **one explicit allow** (e.g. **IoT → `10.10.10.x` TCP 8123**) and **record** it in Ansible or ops notes. |
 
-**Admin paths:** **Pi-hole web UI**, **SSH to `vmbr-svc` hosts**, and similar are **not** in this allow list — use **private** management clients or **Tailscale** after ACLs are defined.
+**Admin paths:** **Pi-hole web UI**, **SSH to `vmbr-svc` hosts**, and similar are **not** in this allow list — use **private** management clients or **Tailscale** per **§ Tailscale ACLs and subnet routes**.
 
 ## Pi-hole upstream DNS (locked)
 
@@ -53,6 +53,45 @@ Pi-hole **forwards** queries it does not block to **recursive resolvers** over *
 **Implementation notes (Ansible / manual):** Configure in **Pi-hole → Settings → DNS** (exact UI labels vary by Pi-hole major version). Many setups use **Custom DNS** entries in the form supported by your release (e.g. `9.9.9.9#dns.quad9.net` where `#` denotes the TLS name — **confirm** against [Pi-hole DNS documentation](https://docs.pi-hole.net/) at install time). Enable **DNS-over-TLS** only if the chosen upstream list supports it in your version.
 
 **Out of scope as default:** **ISP DNS** is **not** the default upstream; you may temporarily point Pi-hole at the ISP (or use VyOS forwarder) for **captive-portal** or **ISP-outage debugging** — document if you add a playbook toggle.
+
+## Tailscale ACLs and subnet routes (locked)
+
+**Goal:** The **Tailscale LXC** on **`vmbr-svc`** (`10.10.0.52` in the locked layout) is the **only** **subnet router** for this lab. **Advertised IPv4 routes** and **tailnet ACL posture** follow the tables below so **guest** and **IoT** stay off the **remote path** by default, and **LAN access over Tailscale** is **owner/admin–scoped**, not “every tailnet member.”
+
+**Implementation reference:** Encode the details in **Tailscale admin → Access controls** (and **machine tags** / **route approval**); syntax changes over time — use [Tailscale ACLs](https://tailscale.com/kb/1018/acls/) and [Tags](https://tailscale.com/kb/1068/tags/) as the source of truth when you paste JSON.
+
+### Machine tag (locked)
+
+| Tag | Attach to | Purpose |
+|-----|-----------|---------|
+| **`tag:homelab-sr`** | **Subnet-router LXC** only | Identifies the node that may offer **approved** subnet routes; use **`tagOwners`** in ACLs so **only tailnet owners** (or your chosen admin principal) can assign this tag. |
+
+### Subnet routes — advertise and approve (locked)
+
+On the **subnet-router LXC**, **configure** Tailscale to **advertise** exactly these **RFC1918** routes (CLI flags or **`/etc/default/tailscaled`** / unit drop-ins — follow current Tailscale docs). In **Tailscale admin → Machines → Subnet routes**, **approve** only these prefixes for that node:
+
+| Prefix | Role | Approve for remote use? |
+|--------|------|-------------------------|
+| **`10.10.0.0/24`** | **`vmbr-svc`** (Pi-hole, Tailscale LXC, VyOS virtio, future LXCs) | **Yes** |
+| **`10.10.10.0/24`** | **Private** VLAN | **Yes** |
+| **`10.10.20.0/24`** | **Guest** VLAN | **No** (default) — **do not** approve unless you **document** a reason and add matching **ACL** rows |
+| **`10.10.30.0/24`** | **IoT** VLAN | **No** (default) — keeps **IoT** off **Tailscale** path; aligns with **§ IoT firewall exceptions** |
+
+If you later **approve** **guest** or **IoT**, update this doc and **Ansible** together.
+
+### ACL intent (locked)
+
+These are **policy requirements**, not a drop-in JSON file:
+
+1. **Who may use subnet routes:** Once routes to **`10.10.0.0/24`** and **`10.10.10.0/24`** exist, **restrict** which **sources** (`autogroup:owner`, named users, `autogroup:admin`, etc.) may **`dst`** those prefixes. **Do not** treat “any tailnet member” as trusted for **LAN** reachability.
+2. **Least privilege on `vmbr-svc`:** Prefer **explicit** `dst` port lists for **Pi-hole** (`80`/`443`/`53` as you need), **SSH** to specific hosts, and other services — avoid a single **“allow `10.10.0.0/24:*` for everyone”** rule when you tighten ACLs.
+3. **Proxmox host UI:** **Proxmox** is intended on **onboard management** (`I219-V`), **not** on **`vmbr-svc`**. **Default:** **do not** expose **Proxmox TCP `8006`** to the **tailnet** via **`10.10.0.0/24`** unless you **deliberately** add it; use **SSH tunnels** or **admin-only** paths from **private** if needed.
+4. **Mesh between nodes:** Keep **device sharing** and **ACL `src` lists** aligned with **who** should reach **which** lab resources; **revoke** unused devices.
+
+### VyOS and egress
+
+- **Tailscale LXC → internet:** The LXC uses **VyOS on `vmbr-svc`** as **default gateway**; **VyOS** must **allow** that host **egress to WAN** for **Tailscale control plane** (HTTPS to Tailscale coordination endpoints — see Tailscale’s **firewall / outbound** docs for current hostnames/IPs). **Pi-hole** may or may not see that traffic depending on whether the LXC uses **Pi-hole** as DNS; either path is fine if **DNS resolution** for Tailscale works.
+- **Return path for subnet-routed traffic:** Traffic **from tailnet → `10.10.10.x`** arrives at the **LXC**, then is **forwarded** via **`10.10.0.1`**. **VyOS** should **allow** **`vmbr-svc` → private** for flows **relayed** by the subnet router (same trust posture you use for other **svc → private** management traffic).
 
 ## Recommended topology — X550-T2, SR-IOV, and Proxmox bridge
 
@@ -97,7 +136,7 @@ Pi-hole **forwards** queries it does not block to **recursive resolvers** over *
 | LXC (locked roles) | Role |
 |--------------------|------|
 | **Pi-hole** | DNS filtering; **static IP `10.10.0.53`** on **`vmbr-svc`**; DHCP on **private** (and optionally **guest**) sets DNS to **`10.10.0.53`**. |
-| **Tailscale** | **Subnet router** (and mesh node) — **locked placement:** dedicated **LXC** on **`vmbr-svc`** (not on VyOS). Example static IP **`10.10.0.52`**; advertise **`10.10.0.0/24`** plus wired VLAN prefixes per ACLs. |
+| **Tailscale** | **Subnet router** (and mesh node) — **locked placement:** dedicated **LXC** on **`vmbr-svc`** (not on VyOS). Example static IP **`10.10.0.52`**; **subnet routes + ACLs** per **§ Tailscale ACLs and subnet routes** (**approve** **`10.10.0.0/24`** + **`10.10.10.0/24`** only by default). |
 
 Other **future** LXCs (Vaultwarden, Docker host, etc.) can share **`vmbr-svc`** or get a second internal bridge if you want stronger isolation later.
 
@@ -202,8 +241,8 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 ### Tailscale
 
 - **Purpose:** **Mesh VPN** for remote admin and **subnet routing** so remote clients reach lab subnets without hairpinning every app through the mesh.
-- **Placement (locked):** **Dedicated LXC** on **`vmbr-svc`** — **subnet router** for advertised routes (e.g. **svc** subnet, **private / guest / iot** prefixes as policy allows). **Not** installed on **VyOS** (router upgrades stay independent of Tailscale package cadence).
-- **Documentation to add:** Node tags, **subnet routes**, **ACL** posture in Tailscale admin (high level until Ansible encodes it); confirm **VyOS** allows **tailscale LXC → DNS / APIs** as needed.
+- **Placement (locked):** **Dedicated LXC** on **`vmbr-svc`** — **subnet router** for **approved** IPv4 routes. **Not** installed on **VyOS** (router upgrades stay independent of Tailscale package cadence).
+- **Tags, routes, ACLs (locked):** **§ Tailscale ACLs and subnet routes** — machine tag **`tag:homelab-sr`**, **approve** **`10.10.0.0/24`** + **`10.10.10.0/24`** only by default, **owner/admin–scoped** ACL intent, **VyOS** notes for **WAN egress** and **`svc` → private** relay.
 
 ## Proxmox mapping (initial allocations)
 

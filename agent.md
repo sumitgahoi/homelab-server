@@ -48,7 +48,7 @@ Document **hardware requirements** and **logical/network design** for a single *
 6. **Network stack (software)**  
    - **VyOS** — **single VM** (choice **A**, locked): **default gateway** with **2× SR-IOV VF** (WAN + LAN trunk) + **1× virtio** on **`vmbr-svc`**. **Not** split across multiple VyOS VMs for WAN/LAN roles.  
    - **Pi-hole** — LAN DNS, caching, ad/tracker blocking; **upstream DNS locked** (**DoT** to **Quad9** + **Cloudflare** — see **`docs/network-and-services.md` § Pi-hole upstream DNS**); **dedicated LXC** on **`vmbr-svc`**.  
-   - **Tailscale** — mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS — see `docs/network-and-services.md`).
+   - **Tailscale** — mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS); **tags, approved subnet routes, and ACL intent** are **locked** in **`docs/network-and-services.md` § Tailscale ACLs and subnet routes**.
 
 ## Planned automation (not in repo yet)
 
@@ -71,10 +71,11 @@ Document **hardware requirements** and **logical/network design** for a single *
 | **2026-05-11** | **VLAN IDs, IPv4 layout, `vmbr-svc` stub** | **Locked** in **`docs/network-and-services.md`**: VLANs **10 / 20 / 30**, subnets **`10.10.10.0/24`**, **`10.10.20.0/24`**, **`10.10.30.0/24`**, internal **`10.10.0.0/24`** (VyOS **`10.10.0.1`**, Pi-hole **`10.10.0.53`**, Tailscale example **`10.10.0.52`**), **tagged-only** LAN trunk to the switch. |
 | **2026-05-11** | **Pi-hole upstream DNS** | **DNS-over-TLS**: **Quad9** primary (`9.9.9.9`, `149.112.112.112`, SNI `dns.quad9.net`); **Cloudflare** secondary (`1.1.1.1`, `1.0.0.1`, SNI `one.one.one.one`); **not** ISP DNS by default. See **`docs/network-and-services.md` § Pi-hole upstream DNS**. |
 | **2026-05-11** | **IoT firewall exceptions** | **Locked** in **`docs/network-and-services.md` § IoT firewall exceptions**: **DROP** IoT→WAN; **ALLOW** IoT→**`10.10.0.53:53`** (Pi-hole); **ALLOW** IoT→**`10.10.30.1:123`** (NTP on VyOS); **DROP** IoT→private/guest by default, **DROP** cross-VLAN **mDNS**; **no** default **Home Assistant** — add **explicit** per-hub rules when needed. |
+| **2026-05-11** | **Tailscale ACLs and subnet routes** | **Locked** in **`docs/network-and-services.md` § Tailscale ACLs and subnet routes**: machine tag **`tag:homelab-sr`** on subnet-router LXC; **approve** **`10.10.0.0/24`** + **`10.10.10.0/24`** only by default (**not** guest/IoT); **owner/admin–scoped** ACL intent; **VyOS** egress + **`svc` → private** relay notes. |
 
 ## Open decisions (fill in as you choose)
 
-- **Tailscale ACLs:** tags, **subnet routes** advertised by the **`tailscale` LXC**, and admin-console **ACL** intent (high level until Ansible encodes it). **Placement is locked** — dedicated LXC on **`vmbr-svc`**.
+*None right now. Add rows here when hardware, ISP, trust boundaries, or automation scope changes.*
 
 ## Changelog
 
@@ -95,3 +96,4 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-11 | **Agent synced:** VLAN/IPv4/`vmbr-svc` treated as **locked** per `network-and-services.md` (removed duplicate open item). |
 | 2026-05-11 | **Pi-hole upstream DNS locked:** DoT to **Quad9** + **Cloudflare**; section in `network-and-services.md`. |
 | 2026-05-11 | **IoT firewall exceptions locked:** new § in `network-and-services.md`; **Resolved** + **Open decisions** in `agent.md` updated. |
+| 2026-05-11 | **Tailscale ACLs + subnet routes locked:** new § in `network-and-services.md`; **Resolved** table + **Open decisions** cleared in `agent.md`. |
