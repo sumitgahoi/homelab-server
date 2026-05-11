@@ -40,13 +40,12 @@ Document **hardware requirements** and **logical/network design** for a single *
    - **Proxmox host** keeps the **physical functions (PFs)** on the X550 so **`ixgbe`** can **parent** SR-IOV VFs. **Do not** use **PF1** (or **PF0**) as a **`vmbr` physical uplink** **while** VyOS uses a **VF from that PF** for **WAN/LAN** — the **VF inside VyOS** is the **production** endpoint on that **RJ45**; bridging the **PF** in parallel is **not clean** and overlaps ownership. See **`docs/network-and-services.md` § SR-IOV nuance — LAN port**.  
    - **Onboard Intel I219-V (1 GbE)** — **Proxmox host management only** (Web UI, SSH, updates). **Do not** rely on it for VyOS WAN/LAN or as the primary path for lab traffic. **LXCs / most VMs** use a **Linux bridge (`vmbr`)** with a **virtio** leg into **VyOS**; **VyOS** routes/NATs to **WAN** and applies **VLAN firewall** policy (see **VLANs** + **recommended topology** in `docs/network-and-services.md`).  
    - **Proxmox and most guests** do not need a second physical NIC: the hypervisor is reached via **onboard**; typical **VMs/LXCs** use **`vmbr-svc`** + **VyOS virtio** (routed); **wired** clients use **private / guest / iot** on the **LAN trunk VF**. **Exception:** specific **VMs** may take an **extra X550 VF** for **direct L2** on the LAN (or rarely WAN) segment — then they are **not** hairpinned through VyOS for **L2** neighbor traffic; still document **L3 default route** inside those guests so **internet** follows your policy.
-5. **LAN segmentation (required)** — Exactly **three VLANs** on the **LAN** side (802.1Q on a **managed switch** trunk to the router):  
+5. **LAN segmentation (required)** — Exactly **three VLANs** on the **LAN** side (802.1Q on a **managed switch** trunk to the router). **IDs, IPv4 prefixes, and `vmbr-svc` stub** are **locked** in [`docs/network-and-services.md`](docs/network-and-services.md) (**VLANs 10 / 20 / 30**, **`10.10.x.0/24`**, **`vmbr-svc` = `10.10.0.0/24`**).  
    - **Private** — trusted devices; **full internet** (subject to normal firewall rules).  
    - **Guest** — untrusted visitors; **internet allowed**; **tighter** isolation from **private** (policy detail in VyOS).  
    - **IoT** — **no internet** (default: **drop forward** from IoT to **WAN**); may allow **limited** access to **private** (e.g. DNS to **Pi-hole** only) — document exceptions when implemented.  
-   *(Numeric **VLAN IDs** and **subnets** are open — see `docs/network-and-services.md`.)*  
 6. **Network stack (software)**  
-   - **VyOS** — edge/router/firewall (or internal routing as designed).  
+   - **VyOS** — **single VM** as default gateway for the lab (`WAN VF` + `LAN trunk VF` + `vmbr-svc` virtio stub on one instance).  
    - **Pi-hole** — LAN DNS, caching, ad/tracker blocking (forwards to chosen upstream resolvers; no separate Unbound layer); **dedicated LXC** on **`vmbr-svc`** (see `docs/network-and-services.md`).  
    - **Tailscale** — mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS — see `docs/network-and-services.md`).
 
@@ -65,8 +64,6 @@ Document **hardware requirements** and **logical/network design** for a single *
 
 ## Open decisions (fill in as you choose)
 
-- **VyOS topology:** single VM as default gateway vs. split WAN/LAN roles.  
-- **VLAN IDs / subnets:** map **private / guest / IoT** to numeric IDs (e.g. 10 / 20 / 30) and **IPv4 prefixes**; **native vs tagged-only** on the switch trunk port.  
 - **IoT exceptions:** whether IoT may reach **Pi-hole** (or NTP only) on **private**; **mDNS** or **HA hub** exceptions.  
 - **Pi-hole upstreams:** which resolvers (e.g. Cloudflare, Quad9, ISP) and whether to use DoT/DoH from Pi-hole to upstream.
 - **Tailscale ACLs:** tags, **subnet routes** advertised by the **`tailscale` LXC**, and admin-console **ACL** intent (high level until Ansible encodes it). **Placement is locked** — dedicated LXC on **`vmbr-svc`**.
@@ -86,3 +83,5 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-10 | Documented **PF vs VF on LAN port:** **no PF1 in `vmbr`** as trunk uplink alongside VyOS **VF**; PF is **SR-IOV parent** only for this design. |
 | 2026-05-10 | **Dedicated LXC on `vmbr-svc`** (Pi-hole + Tailscale); populated **Proxmox mapping** RAM/vCPU; **Tailscale** locked to **subnet-router LXC**; IoT→Pi-hole wording, **`max_vfs` PF0 vs PF1** note, SR-IOV Pi-hole sentence, **reference topology** redraw. |
 | 2026-05-10 | **Disk layout locked:** 960 EVO = Proxmox OS; SN770 = VM/LXC + ISOs; WD Red = bulk/NAS; inventory + `hardware-requirements.md` updated. |
+| 2026-05-10 | **Open decision resolved (#1): VyOS topology** → **single VyOS VM** as default gateway (WAN VF + LAN trunk VF + `vmbr-svc` virtio stub). |
+| 2026-05-10 | **Open decision resolved (#2): VLANs + IPv4** → **VLAN 10/20/30**, **`10.10.10.0/24`**, **`10.10.20.0/24`**, **`10.10.30.0/24`**, **`vmbr-svc` = `10.10.0.0/24`**; uplink **tagged-only** trunk (see `network-and-services.md`). |

@@ -1,16 +1,29 @@
 # Network and services — logical design
 
-High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. Refine IP schemes, VLAN IDs, and Pi-hole upstreams as you implement.
+High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs and IPv4 layout** are **locked** below; Pi-hole upstreams remain an open decision in `agent.md`.
 
-## VLANs (required)
+## VLANs and IPv4 layout (locked)
 
-| VLAN | Purpose | Internet | Notes |
-|------|---------|----------|--------|
-| **Private** | Trusted phones, PCs, servers | **Yes** | Wired clients here; **DNS** points at **Pi-hole’s IP** (Pi-hole runs on **`vmbr-svc`**, not on this VLAN’s L2 — see **Dedicated LXC on `vmbr-svc`**). |
-| **Guest** | Visitors, untrusted devices | **Yes** | Isolate from **private** L3 (and optionally L2); optional bandwidth or DNS policy in VyOS. |
-| **IoT** | Cameras, plugs, speakers, etc. | **No** | **Default:** VyOS **drops forward IoT → WAN**. **Optional:** VyOS allows **IoT → Pi-hole’s static IP on `vmbr-svc`:53** (UDP/TCP) so IoT can resolve locally **without** putting Pi-hole on the IoT VLAN; Pi-hole does **not** live on the IoT segment. |
+**Switch ↔ VyOS LAN VF:** **802.1Q trunk, tagged only** — the port to the X550 LAN carries **VLANs 10, 20, and 30** as **tagged** frames (no shared untagged “native” data VLAN on that uplink). Downstream switch ports are **access** ports with the correct **PVID** per VLAN.
 
-**Example IDs (change to match your switch):** `10` = private, `20` = guest, `30` = iot — document final IDs in VyOS + switch config.
+| VLAN ID | Name | IPv4 subnet | VyOS gateway (typical) | Internet | Notes |
+|--------:|------|-------------|------------------------|----------|--------|
+| **10** | **private** | `10.10.10.0/24` | `10.10.10.1` | **Yes** | DHCP (VyOS or switch) advertises **DNS = `10.10.0.53`** (Pi-hole on **`vmbr-svc`**). |
+| **20** | **guest** | `10.10.20.0/24` | `10.10.20.1` | **Yes** | Tighter firewall toward **private**; DNS may also point to **Pi-hole** if desired. |
+| **30** | **iot** | `10.10.30.0/24` | `10.10.30.1` | **No** | **Default:** drop **IoT → WAN**. Optional: allow **IoT → `10.10.0.53:53`** only (Pi-hole on **`vmbr-svc`**). |
+
+**VyOS LAN subinterfaces (illustrative):** `ethX.10`, `ethX.20`, `ethX.30` where **`ethX`** is the **LAN VF** device name inside VyOS.
+
+## Internal stub — `vmbr-svc` (locked)
+
+| Item | Value |
+|------|--------|
+| **Subnet** | `10.10.0.0/24` |
+| **VyOS virtio (default GW for LXCs)** | `10.10.0.1` |
+| **Tailscale LXC (example static IP)** | `10.10.0.52` |
+| **Pi-hole LXC (example static IP)** | `10.10.0.53` |
+
+Use these addresses in **VyOS static routes / firewall** and in **DHCP option 6 (DNS)** on **private** / **guest** as you prefer. **Re-number only if you deliberately change the plan** — update this table and Ansible vars together.
 
 ## Recommended topology — X550-T2, SR-IOV, and Proxmox bridge
 
@@ -54,8 +67,8 @@ High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**
 
 | LXC (locked roles) | Role |
 |--------------------|------|
-| **Pi-hole** | DNS filtering for the house; **static IP** on **svc** subnet; DHCP on **private** (and optionally **guest**) points DNS here. |
-| **Tailscale** | **Subnet router** (and mesh node) — **locked placement:** dedicated **LXC** on **`vmbr-svc`** (not on VyOS). Advertises lab routes per ACLs; keeps router upgrades decoupled from Tailscale client churn. |
+| **Pi-hole** | DNS filtering; **static IP `10.10.0.53`** on **`vmbr-svc`**; DHCP on **private** (and optionally **guest**) sets DNS to **`10.10.0.53`**. |
+| **Tailscale** | **Subnet router** (and mesh node) — **locked placement:** dedicated **LXC** on **`vmbr-svc`** (not on VyOS). Example static IP **`10.10.0.52`**; advertise **`10.10.0.0/24`** plus wired VLAN prefixes per ACLs. |
 
 Other **future** LXCs (Vaultwarden, Docker host, etc.) can share **`vmbr-svc`** or get a second internal bridge if you want stronger isolation later.
 
@@ -131,30 +144,31 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
                               ▼
               [ managed switch: private | guest | iot VLANs ]
                               │
-              wired PCs, APs, IoT (DNS = Pi-hole IP on vmbr-svc; not L2 on IoT VLAN)
+              wired PCs, APs, IoT (DNS = 10.10.0.53; not L2 on IoT VLAN)
 ```
 
 ## Component roles
 
 ### VyOS
 
+- **Topology (resolved):** **single VyOS VM** is the lab's **default gateway**; it carries **WAN VF**, **LAN trunk VF** (private/guest/iot), and one **virtio** interface to **`vmbr-svc`**.
 - **Purpose:** Default gateway for homelab LAN(s), **NAT**, **firewall**, static/dynamic routing as needed. **Tailscale** runs on a **dedicated LXC** on **`vmbr-svc`**, not on VyOS (see **Tailscale** section).
 - **Interfaces (WAN/LAN):** **Two SR-IOV VFs** on the **Intel X550-T2** — **`ixgbevf`** in VyOS; **WAN VF** = **port 1** (modem); **LAN VF** = **port 2** **802.1Q trunk** to switch with **private / guest / iot** VLAN subinterfaces.  
 - **Interfaces (services stub):** **One virtio** NIC on **`vmbr-svc`** — gateway for **LXCs** and internal VMs; firewall zone typically **same trust as private** (or dedicated **svc** zone).  
-- **Documentation to add:** Public vs private addressing, port forwards, **VLAN ID ↔ zone** table, **IoT → WAN drop** + exceptions, any site-to-site or remote access rules at a **policy** level (not full config until Ansible); record **VF PCI BDFs** next to **WAN/LAN** role.
+- **Documentation to add:** **WAN** public addressing (DHCP/static per ISP), port forwards, **IoT → WAN drop** + exceptions, site-to-site or remote access **policy**; record **VF PCI BDFs** next to **WAN/LAN** role. **VLAN IDs and RFC1918 layout** are **locked** in **§ VLANs and IPv4 layout** above.
 
 ### Pi-hole
 
 - **Purpose:** **LAN DNS** for clients — **blocklists**, **local DNS records**, **caching**, and **UI** for whitelist / timed “disable blocking.” Forwards non-blocked queries to **upstream resolvers** you configure (e.g. Cloudflare, Quad9, ISP); it is **not** a full recursive resolver by default (no separate Unbound required for a typical home).
 - **Resources:** Light for homelab use; RAM grows with **blocklists** and **query history** — tune on **16 GB** host (see mapping table).
-- **Deployment (locked):** **Dedicated LXC** on **`vmbr-svc`** only — **static IP** on **svc** subnet; **not** on **private / guest / iot** VLANs at L2. DHCP on **private** (VyOS or switch) advertises **Pi-hole’s svc IP** as DNS.
-- **VyOS integration:** Allow **private → Pi-hole IP:53** (and **guest** if desired); optional **IoT → Pi-hole IP:53** per firewall. Admin access to Pi-hole web UI: restrict source zones/IPs in VyOS (policy detail when implemented).
+- **Deployment (locked):** **Dedicated LXC** on **`vmbr-svc`** only — **static IP `10.10.0.53`** (see **§ Internal stub — `vmbr-svc`**); **not** on **private / guest / iot** VLANs at L2. DHCP on **private** (VyOS or switch) advertises **`10.10.0.53`** as DNS.
+- **VyOS integration:** Allow **private → `10.10.0.53:53`** (and **guest** if desired); optional **IoT → `10.10.0.53:53`** per firewall. Admin access to Pi-hole web UI: restrict source zones/IPs in VyOS (policy detail when implemented).
 
 ### DNS query path (chosen model)
 
 | Flow | Notes |
 |------|--------|
-| **Client (wired VLAN or svc) → Pi-hole (`vmbr-svc` IP) → upstream resolvers → Internet** | DNS hits **Pi-hole’s routed IP**, not an L2 hop on the IoT VLAN; upstream choice in `agent.md` open decisions. |
+| **Client (wired VLAN or svc) → Pi-hole (`10.10.0.53`) → upstream resolvers → Internet** | DNS hits **Pi-hole’s routed IP**; upstream choice in `agent.md` open decisions. |
 
 ### Tailscale
 
