@@ -16,7 +16,7 @@ This document captures **minimum and recommended** hardware for the stated softw
 | **Board** | ASUS **ROG STRIX Z270E GAMING** |
 | **CPU** | Intel **Core i5-7600K** (4c/4t) — adequate for a lean stack; **more RAM** helps before chasing CPU. |
 | **RAM** | **16 GB** installed today — **below** the 32 GB minimum in the table below for a comfortable multi-VM Proxmox host; **upgrade when practical**, not blocked by this doc. |
-| **Storage** | **WD SN770 1 TB**, **Samsung 960 EVO 250 GB**, **WD Red 3 TB** — see `agent.md` for roles. |
+| **Storage** | **960 EVO 250 GB** = Proxmox OS · **SN770 1 TB** = VM/LXC + ISOs · **WD Red 3 TB** = bulk — see **§ Disk layout (locked)** below. |
 | **10G / multi-gig NIC** | **Intel X550-T2** (locked choice) — VyOS **WAN + LAN**; see [network-and-services.md](network-and-services.md). |
 | **Management NIC** | Onboard **Intel I219-V** — **Proxmox host only**; not the VyOS data path. |
 
@@ -39,15 +39,27 @@ This document captures **minimum and recommended** hardware for the stated softw
 
 Allocate per guest in the network doc; revisit after Proxmox install.
 
-## Storage
+## Disk layout (locked)
+
+| Disk | Model (inventory) | Role on Proxmox |
+|------|-------------------|-----------------|
+| **Smaller NVMe** | **Samsung SSD 960 EVO 250 GB** | **Proxmox VE installation target** — root filesystem (`/`), host packages, logs. **Keep small:** avoid making this the default **VM disk** or **ISO library** store (capacity). |
+| **Larger NVMe** | **WD Black SN770 1 TB** | **Primary datastore** for **all VM and LXC disks**, **ISO images**, and **templates**. Create a Proxmox **Storage** entry (e.g. **Directory** on a dedicated filesystem, **LVM-thin**, or **ZFS single-disk pool**) and set it as **default** for **Disk image** / **Container** where appropriate. **Pi-hole** and other latency-sensitive service disks live here. |
+| **HDD** | **WD Red WD30EFRX 3 TB** | **Bulk capacity** — **NAS / Samba exports**, **media**, **backup targets**, large sequential files. **Not** the default for **Pi-hole query DB** or other **random‑I/O‑heavy** workloads unless you accept slower UI and tune retention. |
+
+**Proxmox UI checklist:** **Datacenter → Storage** — ensure **Disk image** and **Container** (and **ISO image**) point at the **SN770-backed** storage by default; **Directory** for **vzdump** backups can target **HDD** (or SN770 if you prefer speed over capacity).
+
+**Implementation choice (open until install):** whether the **SN770** pool is **ext4 + directory**, **LVM-thin**, or **ZFS** — Ansible will need the **storage ID** name you configure (e.g. `local-lvm`, `vmdata`, `zfs-vm`).
+
+## Storage (general guidance)
 
 | Concern | Guidance |
 |--------|----------|
-| **Boot / OS** | Mirror or single SSD for Proxmox; enterprise or prosumer NVMe/SATA SSD with decent endurance. |
-| **Guest disks** | Separate pool or disks if you want isolation; **avoid one huge slow disk** for everything if you care about DNS latency under load. |
-| **Logs / Pi-hole DB** | Small but random I/O; SSD preferred. |
+| **Boot / OS** | This project: **250 GB Samsung** dedicated to Proxmox; prosumer NVMe with decent endurance. |
+| **Guest disks** | **SN770 1 TB** — keep guests off the **OS disk** by default; avoids filling `/` and keeps DNS/VM I/O on the faster tier. |
+| **Logs / Pi-hole DB** | **SN770** preferred (random I/O); **not** the **WD Red** by default. |
 
-**ZFS on Proxmox:** popular; needs **ECC RAM** strongly recommended if you care about data integrity on that pool (community debate aside, match risk to how much you value the pool).
+**ZFS on Proxmox:** if used on the **SN770**, popular but this platform has **no ECC** — cap **ARC** on **16 GB RAM** hosts; match risk to how much you value that pool.
 
 ## Networking — Intel X550-T2 + onboard management
 
@@ -82,6 +94,6 @@ Allocate per guest in the network doc; revisit after Proxmox install.
 - [ ] **Onboard NIC** reserved for **Proxmox management**; management IP and firewall rules documented
 - [ ] CPU with **virtualization** + **AES-NI** + **IOMMU** (for X550 **VF** assignment to VyOS)
 - [ ] **32 GB RAM** when budget allows (current **16 GB** is tight — see table above)
-- [ ] SSD storage layout decided (single vs mirror vs separate pools)
+- [ ] **Disk layout:** 960 EVO = OS; SN770 = VM/LXC + ISO **storage ID** created and set default; HDD = bulk **mount** (e.g. `/mnt/data`) + backup/NAS role
 - [ ] ECC if using ZFS for important data
 - [ ] Power / cooling / noise acceptable for install location

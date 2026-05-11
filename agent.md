@@ -20,29 +20,32 @@ Document **hardware requirements** and **logical/network design** for a single *
 | **Wireless** | Qualcomm **QCA6174** Wi‑Fi (and BT) — **not** part of the homelab WAN/LAN design; expect **wired** operation. |
 | **Ethernet (onboard)** | Intel **I219-V** (`e1000e`) — **1 GbE**, reserved for **Proxmox management only** per NIC policy below. |
 | **Ethernet (add-in)** | Intel **X550-T2** (`ixgbe` on host, **`ixgbevf`** in guests) — **dual RJ45**; **VyOS:** **two VFs** (WAN+LAN); **other VMs:** optional **additional VF(s)** per VM; size **`max_vfs`**. |
-| **Storage — NVMe 0** | **WD Black SN770 1 TB** — best tier for **Proxmox OS + fast guest disks**. |
-| **Storage — NVMe 1** | **Samsung SSD 960 EVO 250 GB** — secondary **ISO / small VM / cache** tier. |
-| **Storage — SATA** | **WD Red WD30EFRX 3 TB** — **bulk / NAS file share**; avoid hot random I/O–heavy DBs here if possible. |
+| **Storage — boot / OS** | **Samsung SSD 960 EVO 250 GB** — **Proxmox VE root** only (`/`); host logs, updates, and **thin** local state. **Do not** default **VM/LXC disks** or **bulk ISO library** here (disk is small). |
+| **Storage — VMs / LXCs** | **WD Black SN770 1 TB** — **primary Proxmox datastore**: **VM and LXC disks**, **ISO images**, **templates**; fast tier for **Pi-hole** and other service data that benefits from low latency. Add as **Directory**, **LVM-thin**, or **ZFS** (see hardware doc). |
+| **Storage — bulk / NAS** | **WD Red WD30EFRX 3 TB** — **media, file shares, backups**, and other **sequential / capacity** workloads; **not** the default for Pi-hole DB or other **random‑I/O‑heavy** databases unless tuned. |
 | **Swap** | Large swap existed on Arch layout — **do not** treat swap as RAM for Proxmox planning; still size guests so the host does not thrash. |
 
 **Implications for agents:** do **not** recommend **GPU-heavy** (Frigate CPU-only at scale, Immich ML, gaming VMs) without calling out **RAM/CPU** limits; prefer **one role per heavy service** or defer to a **second host**. **ECC** is **not** available on this platform — factor into **ZFS** advice.
 
+**`/dev/nvme*n*` note:** On Linux, **NVMe enumeration order** (`nvme0` vs `nvme1`) can differ from physical slot — always map by **serial/model** in Proxmox **Disks** view after install.
+
 ## Owner requirements (source of truth)
 
 1. **Hypervisor as base** — **Proxmox VE** runs directly on bare metal; workloads are **VMs and LXCs** (containers).
-2. **Hardware host (current)** — Same tower as **[Current hardware inventory](#current-hardware-inventory-read-before-recommending-services)**. **Platform upgrade** (CPU/RAM/motherboard) is **deferred**; revisit when budget or headroom requires it.
-3. **NIC policy (locked)**  
+2. **Disk layout (locked)** — **Samsung 960 EVO 250 GB** = **Proxmox OS only**. **WD Black SN770 1 TB** = **all VM and LXC disks** plus **ISO/template** storage (default fast datastore). **WD Red 3 TB** = **bulk data** (NAS shares, media, backups). See **[`docs/hardware-requirements.md`](docs/hardware-requirements.md)** for Proxmox storage wiring detail.
+3. **Hardware host (current)** — Same tower as **[Current hardware inventory](#current-hardware-inventory-read-before-recommending-services)**. **Platform upgrade** (CPU/RAM/motherboard) is **deferred**; revisit when budget or headroom requires it.
+4. **NIC policy (locked)**  
    - **Intel X550-T2** — Designated **multi-gig / 10G-T** NIC. **VyOS** receives **exactly two SR-IOV virtual functions (VFs)**: **one VF from each physical port (PF0 and PF1)** — map to **WAN** and **LAN** (e.g. modem on RJ45 **PF0** / VF from that port → **WAN**, LAN on **PF1** / VF from that port → **LAN**; document chosen mapping when cabled). **1 / 2.5 / 5 / 10 Gb/s** per link.  
    - **Other Proxmox VMs** may each use **one or more additional VFs** from the X550 (same **`ixgbevf`** guest model) — e.g. **line-rate storage or backup** on a **LAN PF** VF. Size **`ixgbe` `max_vfs`** so each **PF** exposes enough VFs for **VyOS (1 per PF)** plus any **extra VM** assignments; document **which VF BDF** goes to which guest. **LXCs** generally stay on **bridges** (no PCI VF); VF passthrough is **VM-oriented**.  
    - **Proxmox host** keeps the **physical functions (PFs)** on the X550 so **`ixgbe`** can **parent** SR-IOV VFs. **Do not** use **PF1** (or **PF0**) as a **`vmbr` physical uplink** **while** VyOS uses a **VF from that PF** for **WAN/LAN** — the **VF inside VyOS** is the **production** endpoint on that **RJ45**; bridging the **PF** in parallel is **not clean** and overlaps ownership. See **`docs/network-and-services.md` § SR-IOV nuance — LAN port**.  
    - **Onboard Intel I219-V (1 GbE)** — **Proxmox host management only** (Web UI, SSH, updates). **Do not** rely on it for VyOS WAN/LAN or as the primary path for lab traffic. **LXCs / most VMs** use a **Linux bridge (`vmbr`)** with a **virtio** leg into **VyOS**; **VyOS** routes/NATs to **WAN** and applies **VLAN firewall** policy (see **VLANs** + **recommended topology** in `docs/network-and-services.md`).  
    - **Proxmox and most guests** do not need a second physical NIC: the hypervisor is reached via **onboard**; typical **VMs/LXCs** use **`vmbr-svc`** + **VyOS virtio** (routed); **wired** clients use **private / guest / iot** on the **LAN trunk VF**. **Exception:** specific **VMs** may take an **extra X550 VF** for **direct L2** on the LAN (or rarely WAN) segment — then they are **not** hairpinned through VyOS for **L2** neighbor traffic; still document **L3 default route** inside those guests so **internet** follows your policy.
-4. **LAN segmentation (required)** — Exactly **three VLANs** on the **LAN** side (802.1Q on a **managed switch** trunk to the router):  
+5. **LAN segmentation (required)** — Exactly **three VLANs** on the **LAN** side (802.1Q on a **managed switch** trunk to the router):  
    - **Private** — trusted devices; **full internet** (subject to normal firewall rules).  
    - **Guest** — untrusted visitors; **internet allowed**; **tighter** isolation from **private** (policy detail in VyOS).  
    - **IoT** — **no internet** (default: **drop forward** from IoT to **WAN**); may allow **limited** access to **private** (e.g. DNS to **Pi-hole** only) — document exceptions when implemented.  
    *(Numeric **VLAN IDs** and **subnets** are open — see `docs/network-and-services.md`.)*  
-5. **Network stack (software)**  
+6. **Network stack (software)**  
    - **VyOS** — edge/router/firewall (or internal routing as designed).  
    - **Pi-hole** — LAN DNS, caching, ad/tracker blocking (forwards to chosen upstream resolvers; no separate Unbound layer); **dedicated LXC** on **`vmbr-svc`** (see `docs/network-and-services.md`).  
    - **Tailscale** — mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS — see `docs/network-and-services.md`).
@@ -82,3 +85,4 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-10 | **LAN VLANs required:** **private**, **guest**, **iot** (**no internet**); topology + VF/bridge recommendation in `docs/network-and-services.md`. |
 | 2026-05-10 | Documented **PF vs VF on LAN port:** **no PF1 in `vmbr`** as trunk uplink alongside VyOS **VF**; PF is **SR-IOV parent** only for this design. |
 | 2026-05-10 | **Dedicated LXC on `vmbr-svc`** (Pi-hole + Tailscale); populated **Proxmox mapping** RAM/vCPU; **Tailscale** locked to **subnet-router LXC**; IoT→Pi-hole wording, **`max_vfs` PF0 vs PF1** note, SR-IOV Pi-hole sentence, **reference topology** redraw. |
+| 2026-05-10 | **Disk layout locked:** 960 EVO = Proxmox OS; SN770 = VM/LXC + ISOs; WD Red = bulk/NAS; inventory + `hardware-requirements.md` updated. |
