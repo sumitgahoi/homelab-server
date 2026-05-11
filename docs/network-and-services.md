@@ -151,7 +151,7 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 
 ### VyOS
 
-- **Topology (resolved):** **single VyOS VM** is the lab's **default gateway**; it carries **WAN VF**, **LAN trunk VF** (private/guest/iot), and one **virtio** interface to **`vmbr-svc`**.
+- **Topology (locked — option A):** **single VyOS VM** is the lab's **default gateway**; it carries **WAN VF**, **LAN trunk VF** (private/guest/iot), and one **virtio** interface to **`vmbr-svc`** (no split WAN/LAN VyOS pair).
 - **Purpose:** Default gateway for homelab LAN(s), **NAT**, **firewall**, static/dynamic routing as needed. **Tailscale** runs on a **dedicated LXC** on **`vmbr-svc`**, not on VyOS (see **Tailscale** section).
 - **Interfaces (WAN/LAN):** **Two SR-IOV VFs** on the **Intel X550-T2** — **`ixgbevf`** in VyOS; **WAN VF** = **port 1** (modem); **LAN VF** = **port 2** **802.1Q trunk** to switch with **private / guest / iot** VLAN subinterfaces.  
 - **Interfaces (services stub):** **One virtio** NIC on **`vmbr-svc`** — gateway for **LXCs** and internal VMs; firewall zone typically **same trust as private** (or dedicated **svc** zone).  
