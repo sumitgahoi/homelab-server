@@ -1,6 +1,22 @@
 # Network and services — logical design
 
-High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs, IPv4 layout, `vmbr-svc` addresses, Pi-hole upstream DNS, IoT firewall exceptions, and Tailscale ACLs / subnet routes** are **locked** below (see also **`agent.md` § Resolved open decisions**).
+High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**. **VLAN IDs, IPv4 layout, `vmbr-svc` addresses, Pi-hole upstream DNS, IoT firewall exceptions, and Tailscale ACLs / subnet routes** are **locked** below as the **target** network (see also **`agent.md` § Resolved open decisions**).
+
+**Baby steps:** The owner is rolling out **incrementally**. **Phase 1** (below) is **VyOS-only** on a **flat LAN** — **no VLANs**, **no SR-IOV**, **DHCP**, and **Cloudflare or OpenDNS** for client DNS. Everything from **§ VLANs and IPv4 layout** onward remains the **north-star design**; adopt those pieces when ready without deleting this document.
+
+## Phase 1 — VyOS-only starter (current rollout)
+
+**Goal:** One **VyOS** VM on **Proxmox VE** as the household **default gateway** — **NAT**, basic **firewall**, **DHCP** on LAN, **no** Pi-hole / Tailscale / **`vmbr-svc`** yet.
+
+| Topic | Phase 1 |
+|--------|---------|
+| **Proxmox ↔ VyOS** | **Linux bridges** + **virtio** (or `e1000`) — **not** SR-IOV. Typical pattern: **`vmbr-wan`** with a **physical port** to the **modem** (use **2.5G** modem LAN if available); **`vmbr-lan`** with a **physical port** to the **LAN switch / APs**. VyOS VM: **two virtual NICs**, one per bridge. **Onboard I219-V** stays **Proxmox management** — keep it off the VyOS data path unless you deliberately share it (not recommended). |
+| **LAN** | **Single flat subnet** — pick one **RFC1918** block (e.g. **`192.168.1.0/24`** or reuse **`10.10.10.0/24`** as a **non-VLAN** preview of the future **private** VLAN). **No 802.1Q** to VyOS yet. |
+| **DHCP** | Run on **VyOS** for the LAN segment (pools, default route = VyOS LAN IP). |
+| **DNS for LAN clients** | **Cloudflare** `1.1.1.1`, `1.0.0.1` **or** **Cisco OpenDNS** `208.67.222.222`, `208.67.220.220` — advertise via **VyOS DHCP `dns-server`** (exact CLI varies by VyOS major version). **No local DNS filter** in Phase 1. Optionally set **VyOS system name servers** to the same resolvers for the router’s own lookups. |
+| **Deferred (documented below as target)** | **SR-IOV**, **VLAN trunk** to VyOS, **`vmbr-svc`**, **Pi-hole** (DoT upstreams), **Tailscale**, **IoT / guest / private** segmentation and firewall tables. |
+
+**When to open the rest of this file:** Add **VLANs** when you need **guest / IoT isolation**; add **`vmbr-svc` + Pi-hole** when you want **filtering / local DNS** instead of handing clients public resolvers directly; add **SR-IOV** when you want the **PF/VF** performance model; add **Tailscale** when remote access matters.
 
 ## VLANs and IPv4 layout (locked)
 
@@ -248,11 +264,13 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 
 ## Proxmox mapping (initial allocations)
 
+**Phase 1:** provision **only `vyos`** with **2× virtio** on your **WAN/LAN `vmbr`** pair; skip **pihole** / **tailscale** until **`vmbr-svc`** exists.
+
 Rough sizing for the **current 16 GB** host; adjust after `pveperf` / real load. **Ballpark totals:** VyOS **~1.5 GiB** + Pi-hole **~512 MiB** + Tailscale **~512 MiB** + Proxmox **~2–4 GiB** leaves headroom for a few more small LXCs.
 
 | Guest name | Type | vCPU | RAM | Primary role | Bridges / devices |
 |------------|------|------|-----|--------------|-------------------|
-| **vyos** | VM | 2 | **1536 MiB** | Gateway, NAT, firewall, **VLAN private/guest/iot**, DHCP (optional) | **2× SR-IOV VF** (WAN PF0 + LAN trunk PF1) + **1× virtio** on **`vmbr-svc`** |
+| **vyos** | VM | 2 | **1536 MiB** | Gateway, NAT, firewall, DHCP (**Phase 1:** flat LAN; **target:** VLAN private/guest/iot) | **Target:** **2× SR-IOV VF** (WAN + LAN trunk) + **1× virtio** on **`vmbr-svc`**. **Phase 1:** **2× virtio** on **`vmbr-wan`** + **`vmbr-lan`** (or your bridge names). |
 | **pihole** | LXC | 1 | **512 MiB** | DNS filtering (locked) | **`vmbr-svc`** only; static **svc** IP |
 | **tailscale** | LXC | 1 | **512 MiB** | Tailscale **subnet router** (locked) | **`vmbr-svc`** only |
 | *future:* vaultwarden, docker, … | LXC | *TBD* | *TBD* | As planned | **`vmbr-svc`** (or new internal bridge) |

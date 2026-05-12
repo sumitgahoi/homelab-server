@@ -63,7 +63,9 @@ Allocate per guest in the network doc; revisit after Proxmox install.
 
 ## Networking — dual-port router NIC + onboard management
 
-**Architecture (locked):** a **dual-port** PCIe NIC supplies **WAN** and **LAN** to **VyOS** as **two SR-IOV VFs** (**one VF per physical port / PF**). **Onboard Intel I219-V** (**1 GbE**) is **Proxmox management only** — not VyOS WAN/LAN or the primary lab data path.
+**Phase 1 (baby steps):** attach each **physical port** of the add-in NIC to a **Proxmox Linux bridge** (`vmbr-wan`, `vmbr-lan`, or your names) and give the **VyOS** VM **virtio** interfaces on those bridges — **no SR-IOV** yet. Same **modem 2.5G → WAN bridge** guidance as in **§ WAN speed**.
+
+**Target architecture (locked when you adopt it):** a **dual-port** PCIe NIC supplies **WAN** and **LAN** to **VyOS** as **two SR-IOV VFs** (**one VF per physical port / PF**). **Onboard Intel I219-V** (**1 GbE**) is **Proxmox management only** — not VyOS WAN/LAN or the primary lab data path.
 
 **Current inventory (not locked):** **Intel X550-T2** — two **RJ45** ports, **NBASE-T** (**1 / 2.5 / 5 / 10 Gb/s**), Linux **`ixgbe`** + guest **`ixgbevf`**. Strong fit when the **modem LAN** is **multi-gig** (e.g. **2.5G**) or **10G** and you want headroom.
 
