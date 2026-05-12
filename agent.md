@@ -98,3 +98,4 @@ Document **hardware requirements** and **logical/network design** for a single *
 | 2026-05-11 | **IoT firewall exceptions locked:** new § in `network-and-services.md`; **Resolved** + **Open decisions** in `agent.md` updated. |
 | 2026-05-11 | **Tailscale ACLs + subnet routes locked:** new § in `network-and-services.md`; **Resolved** table + **Open decisions** cleared in `agent.md`. |
 | 2026-05-11 | **NIC SKU clarified:** **X550-T2** is **current inventory**, not a hard lock; **`docs/hardware-requirements.md` § NIC alternatives** + WAN speed note (~**1.3 Gbps**); **`agent.md`** / **`network-and-services.md`** / **README** generalized where needed. |
+| 2026-05-11 | **Modem dual LAN:** doc note — **VyOS WAN** on **2.5G** modem port when **1G + 2.5G** both available (`hardware-requirements.md` § WAN speed). |

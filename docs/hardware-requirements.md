@@ -71,6 +71,8 @@ Allocate per guest in the network doc; revisit after Proxmox install.
 
 A **true 1 GbE** link to the modem **tops out near ~940–950 Mb/s** TCP after overhead — you **leave bandwidth unused** on a **~1.3 Gbps** plan. Prefer a NIC + cable + modem LAN port that negotiate **at least 2.5 Gb/s** (or **5G / 10G**) on the **WAN** side. **X550-T2** often syncs at **2.5G** or **5G** to many **cable / fiber ONT** multi-gig ports; confirm **modem port speed** and **Cat5e/Cat6** quality.
 
+**Modem offers both 1 GbE and 2.5 GbE LAN:** cable **VyOS WAN** (the router NIC’s **WAN** / **modem** RJ45) to the **2.5 GbE** jack. Reserve the **1 GbE** jack for **non-primary** use (e.g. **temporary laptop** plug-in, **ISP tech** path, or a **downstream device** that only needs 1 Gb/s) — **not** as the main feed into **VyOS** if you want **full** use of a **~1.3 Gbps** subscription.
+
 ### NIC alternatives (SKU flexible — verify before buy)
 
 | Option | Typical driver | Notes |
@@ -90,7 +92,7 @@ A **true 1 GbE** link to the modem **tops out near ~940–950 Mb/s** TCP after o
 
 ### Suggested documentation fields (fill in when cabled)
 
-- **WAN port:** physical port, negotiated speed, cable to modem (**match modem’s multi-gig port**).
+- **WAN port:** physical port on **router NIC**, negotiated speed, cable to modem — **use modem’s 2.5G (or faster) LAN** when the modem exposes **both 1G and 2.5G** (see **§ WAN speed** above).
 - **LAN port:** speed, cable to **managed switch** trunk.
 - **VF map:** **BDF → guest** for **VyOS** (2) and **every other VM** using a VF; **`max_vfs`** (or equivalent) on the host.
 - **Onboard `enp0s31f6` (or equivalent):** static management IP on an **isolated or trusted** management VLAN/L2, if used.

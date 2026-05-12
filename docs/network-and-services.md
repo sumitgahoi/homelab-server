@@ -125,7 +125,7 @@ These are **policy requirements**, not a drop-in JSON file:
 
 **Behavior:**
 
-1. **WAN:** One **VF** on **port 1** → VyOS only; cable to **modem**.  
+1. **WAN:** One **VF** on **port 1** → VyOS only; cable to **modem** — if the modem has **both 1 GbE and 2.5 GbE LAN**, use **2.5 GbE** for this link (see **`docs/hardware-requirements.md` § WAN speed**).  
 2. **LAN trunk:** One **VF** on **port 2** → VyOS only; cable to a **switch port configured as trunk** carrying **private / guest / iot** VLANs (tagged). VyOS implements **`LAN-phy.10`**, **`.20`**, **`.30`** (names vary) with **per-VLAN gateways** and **firewall zones**.  
 3. **IoT:** VyOS **forward filter** per **§ IoT firewall exceptions** — **drop** **iot** → **WAN**; **allow** **IoT → `10.10.0.53:53`** and **IoT → `10.10.30.1:123`** only as locked there.  
 4. **LXCs / most VMs:** **`vmbr-svc`** is **internal**. Each guest has **virtio → vmbr-svc**; **default gateway = VyOS virtio IP** on that bridge. VyOS **routes/NATs** **vmbr-svc subnet** to **WAN** and treats it as **private-equivalent** trust (or a dedicated firewall zone **“svc”** you attach to **private** rules).  
