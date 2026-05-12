@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: proxmox_vyos_vm
+  author: homelab-server
+  description: Create or clone a VyOS VM on Proxmox VE (Phase 1 — virtio + bridges).
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

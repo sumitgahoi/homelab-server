@@ -1,0 +1,6 @@
+---
+- name: Merge Phase 1 VyOS configuration (idempotent line merge)
+  vyos.vyos.vyos_config:
+    lines: "{{ lookup('template', 'phase1_set_commands.j2').splitlines() | reject('equalto', '') | list }}"
+    match: line
+    save: true

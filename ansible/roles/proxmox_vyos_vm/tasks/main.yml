@@ -1,0 +1,73 @@
+---
+- name: Require Proxmox API password
+  ansible.builtin.assert:
+    that:
+      - proxmox_api_password is defined
+      - proxmox_api_password | length > 0
+    fail_msg: >-
+      Define proxmox_api_password (e.g. ansible-vault group_vars, -e, or
+      lookup('env', 'PROXMOX_PASSWORD')).
+
+- name: Clone VyOS VM from template
+  when: vyos_provision_mode == "clone"
+  block:
+    - name: Validate clone parameters
+      ansible.builtin.assert:
+        that:
+          - vyos_clone_vmid is not none
+          - vyos_clone_vmid | int > 0
+        fail_msg: "Set vyos_clone_vmid to the source template VMID when vyos_provision_mode is clone."
+
+    - name: Clone VyOS VM from template (full clone)
+      community.general.proxmox_kvm:
+        api_host: "{{ proxmox_api_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ proxmox_api_password }}"
+        validate_certs: "{{ proxmox_validate_certs }}"
+        node: "{{ proxmox_node }}"
+        vmid: "{{ vyos_vmid }}"
+        name: "{{ vyos_vm_name }}"
+        clone: "{{ vyos_clone_vmid }}"
+        full: true
+        storage: "{{ proxmox_storage }}"
+        format: qcow2
+        timeout: 600
+        state: present
+      delegate_to: localhost
+
+- name: Create new VyOS VM (empty disk — install OS from ISO via Proxmox console once)
+  when: vyos_provision_mode == "create"
+  community.general.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    validate_certs: "{{ proxmox_validate_certs }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vyos_vmid }}"
+    name: "{{ vyos_vm_name }}"
+    memory: "{{ vyos_memory_mb }}"
+    cores: "{{ vyos_vcpus }}"
+    sockets: 1
+    cpu: host
+    ostype: l26
+    scsihw: virtio-scsi-single
+    scsi0: "{{ proxmox_storage }}:{{ vyos_disk_size_gb }},cache=writeback,iothread=1"
+    net0: "virtio,bridge={{ proxmox_bridge_wan }}"
+    net1: "virtio,bridge={{ proxmox_bridge_lan }}"
+    agent: true
+    onboot: true
+    bios: seabios
+    machine: q35
+    state: present
+  delegate_to: localhost
+
+- name: Start VyOS VM
+  community.general.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    validate_certs: "{{ proxmox_validate_certs }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vyos_vmid }}"
+    state: started
+  delegate_to: localhost

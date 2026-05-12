@@ -62,9 +62,9 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
    - **Pi-hole** — *(Phase 2+)* LAN DNS, caching, ad/tracker blocking; **upstream DNS locked** (**DoT** to **Quad9** + **Cloudflare** — see **`docs/network-and-services.md` § Pi-hole upstream DNS**); **dedicated LXC** on **`vmbr-svc`**.  
    - **Tailscale** — *(Phase 2+)* mesh VPN / secure remote access; **dedicated LXC** on **`vmbr-svc`** as **subnet router** (**not** on VyOS); **tags, approved subnet routes, and ACL intent** are **locked** in **`docs/network-and-services.md` § Tailscale ACLs and subnet routes**.
 
-## Planned automation (not in repo yet)
+## Planned automation
 
-- **Ansible** playbooks/roles will be added later to configure guests and services. Until then, this repo is **documentation only** (no playbooks, scripts, or IaC).
+- **Ansible** lives under **`ansible/`** — see **`ansible/README.md`** to **provision** a **VyOS** VM on **Proxmox** and apply **Phase 1** config (bridges + virtio, DHCP, Cloudflare/OpenDNS). Further playbooks may be added later.
 
 ## Repository layout
 
@@ -74,6 +74,7 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 | `README.md` | Short overview and how to read the docs. |
 | `docs/hardware-requirements.md` | CPU, RAM, storage, NIC, power, physical constraints. |
 | `docs/network-and-services.md` | **Phase 1** starter + **target** topology (VLANs, Pi-hole, Tailscale, SR-IOV). |
+| `ansible/` | **Ansible** — Proxmox VyOS VM + **Phase 1** VyOS config (see **`ansible/README.md`**). |
 
 ## Resolved open decisions
 
@@ -113,3 +114,4 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 | 2026-05-11 | **NIC SKU clarified:** **X550-T2** is **current inventory**, not a hard lock; **`docs/hardware-requirements.md` § NIC alternatives** + WAN speed note (~**1.3 Gbps**); **`agent.md`** / **`network-and-services.md`** / **README** generalized where needed. |
 | 2026-05-11 | **Modem dual LAN:** doc note — **VyOS WAN** on **2.5G** modem port when **1G + 2.5G** both available (`hardware-requirements.md` § WAN speed). |
 | 2026-05-12 | **Baby steps rollout:** **Phase 1** VyOS-only / flat LAN / bridges+virtio / Cloudflare or OpenDNS DHCP; **README**, **`agent.md`**, **`network-and-services.md`**, **`hardware-requirements.md`** updated; **target** design retained. |
+| 2026-05-12 | **Ansible:** `ansible/` — **`proxmox_vyos_vm`** + **`vyos_phase1`** roles and **`playbooks/site.yml`** for Proxmox VM + Phase 1 VyOS config. |

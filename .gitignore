@@ -1,3 +1,8 @@
 .DS_Store
 *.swp
 *.tmp
+
+# Ansible
+ansible/collections/
+.vault_pass
+**/secrets.yml
