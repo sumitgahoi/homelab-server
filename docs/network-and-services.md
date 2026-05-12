@@ -18,7 +18,7 @@ High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**
 
 **When to open the rest of this file:** Add **VLANs** when you need **guest / IoT isolation**; add **`vmbr-svc` + Pi-hole** when you want **filtering / local DNS** instead of handing clients public resolvers directly; add **SR-IOV** when you want the **PF/VF** performance model; add **Tailscale** when remote access matters.
 
-## VLANs and IPv4 layout (locked)
+**Automation:** Example **Ansible** playbooks to **create** the VyOS VM on Proxmox and apply **Phase 1** settings are in **`ansible/`** — see **`ansible/README.md`**.
 
 **Switch ↔ VyOS LAN VF:** **802.1Q trunk, tagged only** — the port to the **router NIC’s LAN** carries **VLANs 10, 20, and 30** as **tagged** frames (no shared untagged “native” data VLAN on that uplink). Downstream switch ports are **access** ports with the correct **PVID** per VLAN.
 
