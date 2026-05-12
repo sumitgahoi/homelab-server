@@ -4,7 +4,7 @@ High-level design for **VyOS**, **Pi-hole**, and **Tailscale** on **Proxmox VE**
 
 ## VLANs and IPv4 layout (locked)
 
-**Switch ↔ VyOS LAN VF:** **802.1Q trunk, tagged only** — the port to the X550 LAN carries **VLANs 10, 20, and 30** as **tagged** frames (no shared untagged “native” data VLAN on that uplink). Downstream switch ports are **access** ports with the correct **PVID** per VLAN.
+**Switch ↔ VyOS LAN VF:** **802.1Q trunk, tagged only** — the port to the **router NIC’s LAN** carries **VLANs 10, 20, and 30** as **tagged** frames (no shared untagged “native” data VLAN on that uplink). Downstream switch ports are **access** ports with the correct **PVID** per VLAN.
 
 | VLAN ID | Name | IPv4 subnet | VyOS gateway (typical) | Internet | Notes |
 |--------:|------|-------------|------------------------|----------|--------|
@@ -93,20 +93,22 @@ These are **policy requirements**, not a drop-in JSON file:
 - **Tailscale LXC → internet:** The LXC uses **VyOS on `vmbr-svc`** as **default gateway**; **VyOS** must **allow** that host **egress to WAN** for **Tailscale control plane** (HTTPS to Tailscale coordination endpoints — see Tailscale’s **firewall / outbound** docs for current hostnames/IPs). **Pi-hole** may or may not see that traffic depending on whether the LXC uses **Pi-hole** as DNS; either path is fine if **DNS resolution** for Tailscale works.
 - **Return path for subnet-routed traffic:** Traffic **from tailnet → `10.10.10.x`** arrives at the **LXC**, then is **forwarded** via **`10.10.0.1`**. **VyOS** should **allow** **`vmbr-svc` → private** for flows **relayed** by the subnet router (same trust posture you use for other **svc → private** management traffic).
 
-## Recommended topology — X550-T2, SR-IOV, and Proxmox bridge
+## Recommended topology — dual-port NIC, SR-IOV, Proxmox bridge
 
-**Goal:** VyOS uses **VFs** for **fast WAN/LAN**, carries **three VLANs** on **LAN**, keeps **LXCs** on a simple **Linux bridge**, without putting the **X550 PF** on `vmbr` (avoids PF+VF hairpins on v1).
+**Goal:** VyOS uses **VFs** for **fast WAN/LAN**, carries **three VLANs** on **LAN**, keeps **LXCs** on a simple **Linux bridge**, without putting the **router NIC’s PF** on `vmbr` in parallel with **VyOS production VFs** (avoids PF+VF hairpins on v1).
+
+**Illustrated NIC:** drawings below use **Intel X550-T2** (`ixgbe`); the same **logical** layout applies to any **dual-PF** NIC you run with **SR-IOV** to VyOS (see **`docs/hardware-requirements.md` § NIC alternatives** if you change SKU).
 
 ```text
   [ Internet ]
        │
        │  (untagged or ISP VLAN — follow modem)
        ▼
-  X550  RJ45 port 1  (PF0)
-       │  VF0 ─────────────────────────────►  VyOS  WAN  (ixgbevf)
+  Router NIC  RJ45 WAN port  (PF0)
+       │  VF0 ─────────────────────────────►  VyOS  WAN  (guest VF driver, e.g. ixgbevf)
        │
-  X550  RJ45 port 2  (PHY / parent = PF1) ─── cable ───►  [ managed switch trunk ]
-       │  VF from PF1 ──────────────────────►  VyOS  LAN  (ixgbevf) = only trunk endpoint
+  Router NIC  RJ45 LAN port  (PHY / parent = PF1) ─── cable ───►  [ managed switch trunk ]
+       │  VF from PF1 ──────────────────────►  VyOS  LAN  (guest VF driver) = only trunk endpoint
        │                                       (not: Proxmox vmbr + PF1 in parallel)
        │                                      eth1.10 private
        │                                      eth1.20 guest
@@ -131,7 +133,7 @@ These are **policy requirements**, not a drop-in JSON file:
 
 ## Dedicated LXC on `vmbr-svc`
 
-**`vmbr-svc`** is the **internal-only** Linux bridge (no physical X550 port). **Dedicated LXCs** are guests that **only** attach here — **virtio/veth**, **not** SR-IOV VFs. They reach **wired VLANs** and **internet** **only** via **VyOS** (default gateway = **VyOS virtio** on `vmbr-svc`).
+**`vmbr-svc`** is the **internal-only** Linux bridge (no physical router-NIC port). **Dedicated LXCs** are guests that **only** attach here — **virtio/veth**, **not** SR-IOV VFs. They reach **wired VLANs** and **internet** **only** via **VyOS** (default gateway = **VyOS virtio** on `vmbr-svc`).
 
 | LXC (locked roles) | Role |
 |--------------------|------|
@@ -140,7 +142,7 @@ These are **policy requirements**, not a drop-in JSON file:
 
 Other **future** LXCs (Vaultwarden, Docker host, etc.) can share **`vmbr-svc`** or get a second internal bridge if you want stronger isolation later.
 
-**Why not bridge the X550 PF here:** Keeping **both PFs** **unbridged** on the host (only **VFs** assigned to VMs) avoids **v1** complexity where **PF + VF** share **port 2** and the same **trunk**. If you later need a VM **on-wire in VLAN 10**, add an **extra VF** on **PF1** or revisit **PF trunk → vlan-aware `vmbr`**.
+**Why not bridge the router NIC PF here:** Keeping **both PFs** **unbridged** on the host (only **VFs** assigned to VMs) avoids **v1** complexity where **PF + VF** share **the LAN PHY** and the same **trunk**. If you later need a VM **on-wire in VLAN 10**, add an **extra VF** on the **LAN PF** or revisit **PF trunk → vlan-aware `vmbr`**.
 
 ### SR-IOV nuance — LAN port: PF1 vs VyOS’s VF (read this)
 
@@ -149,32 +151,32 @@ On **RJ45 port 2**, the **hardware** exposes **PF1** (parent function). **SR-IOV
 | Question | Answer in this design |
 |----------|------------------------|
 | Does **Proxmox** also put **PF1** into **`vmbr0`** as the **trunk uplink** while VyOS uses a **VF from PF1**? | **No.** That pattern **conflicts**: you cannot cleanly **hand the same port** to a **Linux bridge as PF** *and* treat **VyOS’s VF** as the **sole router trunk** without **overlapping L2 roles** and **hard-to-debug** behavior. **Pick one owner** for **production** trunk traffic: here it is **VyOS via VF**. |
-| What is **PF1** doing on the **Proxmox host** then? | **`ixgbe`** keeps **PF1** to **parent** SR-IOV: **create VFs**, **link state**, driver housekeeping. **Do not** rely on **PF1** as a **second parallel path** on the **same VLANs** as VyOS’s LAN VF (no **PF IP** on **private/guest/iot**, no **PF as `vmbr` slave** for that trunk). |
-| Can the **PF** still pass traffic on Intel X550 with SR-IOV enabled? | Often **yes** at the hardware/driver level, but **using PF1 for real traffic** while **VyOS uses a VF on the same port** is **easy to get wrong** (duplicate MAC/IP expectations, VLAN hairpins, “who answers ARP?”). **Treat PF1 as SR-IOV parent only** unless you are deliberately redesigning. |
-| Where does the **physical cable** go? | **Switch trunk port** ↔ **X550 RJ45 port 2**. Electrically that is **PF1’s PHY**; **logically** the **trunk** is **consumed by VyOS** on its **LAN VF**. |
+| What is **PF1** doing on the **Proxmox host** then? | The **host NIC driver** keeps **PF1** to **parent** SR-IOV: **create VFs**, **link state**, driver housekeeping. **Do not** rely on **PF1** as a **second parallel path** on the **same VLANs** as VyOS’s LAN VF (no **PF IP** on **private/guest/iot**, no **PF as `vmbr` slave** for that trunk). |
+| Can the **PF** still pass traffic with SR-IOV enabled? | Often **yes** at the hardware/driver level, but **using the PF for production traffic** while **VyOS uses a VF on the same PHY** is **easy to get wrong** (duplicate MAC/IP expectations, VLAN hairpins, “who answers ARP?”). **Treat the LAN PF as SR-IOV parent only** unless you are deliberately redesigning. |
+| Where does the **physical cable** go? | **Switch trunk port** ↔ **LAN RJ45** (second port in the **two-port** layout). Electrically that is the **LAN PF’s PHY**; **logically** the **trunk** is **consumed by VyOS** on its **LAN VF**. |
 
-**Short version:** **one RJ45, one production L2 “face” to the switch for routing:** **VyOS’s VF**. **Proxmox** reaches the world via **VyOS** (**virtio on `vmbr-svc`**) or via **onboard management** — **not** by bridging **PF1**.
+**Short version:** **one RJ45, one production L2 “face” to the switch for routing:** **VyOS’s LAN VF**. **Proxmox** reaches the world via **VyOS** (**virtio on `vmbr-svc`**) or via **onboard management** — **not** by bridging the **LAN PF**.
 
-## Physical interfaces (locked)
+## Physical interfaces (locked roles; NIC SKU flexible)
 
 | Interface | Role |
 |-----------|------|
-| **Intel X550-T2** (two RJ45, two **PFs**) | Proxmox loads **`ixgbe`** on each **PF**. **VyOS VM:** **two SR-IOV VFs** — **one VF per PF** (e.g. **PF0 → VyOS WAN**, **PF1 → VyOS LAN**). **Other VMs:** may each use **additional VF(s)** from either PF (common pattern: **spare VFs on the LAN PF** for line-rate workloads). Guest driver on VF consumers: **`ixgbevf`**. Most lab traffic still **routes through VyOS**; a VM with its **own LAN VF** is **on-wire at L2** on that segment (plan **VLANs / routes** so policy stays clear). |
 | **Onboard Intel I219-V** (1 GbE) | **Proxmox VE host only** — Web UI, SSH, updates. **Not** the VyOS WAN/LAN path; **not** where Pi-hole or other guests bind as their primary physical uplink. |
+| **Add-in dual-port NIC** (inventory: **Intel X550-T2**; see **`docs/hardware-requirements.md` § NIC alternatives**) | Proxmox loads the **host driver** on each **PF** (e.g. **`ixgbe`** for X550). **VyOS VM:** **two SR-IOV VFs** — **one VF per PF** (e.g. **PF0 → VyOS WAN**, **PF1 → VyOS LAN**). **Other VMs:** may each use **additional VF(s)** from either PF. Guest VF driver depends on NIC (**`ixgbevf`**, **`i40evf`**, **Mellanox VF**, …). Most lab traffic still **routes through VyOS**; a VM with its **own LAN VF** is **on-wire at L2** on that segment (plan **VLANs / routes** so policy stays clear). |
 
 **VMs / LXCs (Pi-hole, Tailscale node, Vaultwarden, file share, etc.):** use **virtual Ethernet** on **`vmbr-svc`** (internal bridge); **default gateway = VyOS virtio** on that bridge. Traffic to **internet** or **wired VLANs** is **routed by VyOS** from **svc** out **WAN VF** or **LAN trunk VF** as appropriate. Wired clients live in **private / guest / iot** on the **switch trunk**; they do not need to be on **`vmbr-svc`** unless you bridge otherwise.
 
-**Implementation (locked):** **not** whole-card PCIe passthrough of the X550 to VyOS for WAN/LAN; **not** virtio from Proxmox bridges onto VyOS for those links. **Management stays on onboard**; **VyOS WAN/LAN = two VFs** (one per PF). **Optional:** further **VFs** to **other VMs** (see SR-IOV section).
+**Implementation (locked pattern):** **not** whole-card PCIe passthrough of the **router NIC** to VyOS for WAN/LAN; **not** virtio from Proxmox bridges onto VyOS for those links. **Management stays on onboard**; **VyOS WAN/LAN = two VFs** (one per PF). **Optional:** further **VFs** to **other VMs** (see SR-IOV section).
 
 ### SR-IOV — chosen model and ops notes
 
 - **VyOS:** exactly **2 VFs** — **one VF tied to each physical port** (each port has one **PF** in the host; the first **VF** on that port, or whichever VF BDFs you assign, goes to VyOS). Document **PCI BDFs** in the Proxmox VM config after first boot (`lspci -nn` on the host).
 - **Proxmox:** add each VF as a **PCI device** (`hostdev`) on the **VyOS** VM; ensure **IOMMU** grouping allows it (Intel **VT-d** on, **`intel_iommu=on iommu=pt`** on the host where applicable).
-- **Host PFs:** keep **`ixgbe`** managing the **PFs** so VFs exist. **Do not** add **PF0/PF1** to **`vmbr`** as **WAN/LAN uplinks** while **VyOS uses VFs** from those PFs — see **§ SR-IOV nuance — LAN port**. **Avoid** **PF IPs** on the **same VLANs / subnets** as VyOS **WAN/LAN VF** (prevents ARP/gateway confusion).
+- **Host PFs:** keep the **host driver** managing the **PFs** so VFs exist. **Do not** add **PF0/PF1** (or equivalent) to **`vmbr`** as **WAN/LAN uplinks** while **VyOS uses VFs** from those PFs — see **§ SR-IOV nuance — LAN port**. **Avoid** **PF IPs** on the **same VLANs / subnets** as VyOS **WAN/LAN VF** (prevents ARP/gateway confusion).
 - **Other VMs:** any **VM** (not typical **LXCs**) that needs **near-line-rate** or lower **CPU per packet** can be given **its own VF(s)** — usually from the **LAN-side PF** so the guest sits on the **same Ethernet broadcast domain** as the switch leg behind VyOS **LAN**. Avoid handing random VMs a **WAN-PF VF** unless you intend **parallel internet paths** and know the **firewall** implications.
-- **Capacity:** set **`options ixgbe max_vfs=<N>`** high enough that **each PF** exposes **1 VF for VyOS** on that port **plus** every **extra VF** you assign to **other VMs** (validate **N** per port in **`dmesg`** / Intel docs — driver and firmware caps apply). Each VF is a **distinct PCI function**; attach via Proxmox **`hostdev`** per VM.
+- **Capacity:** set **`max_vfs`** (or your driver’s equivalent) high enough that **each PF** exposes **1 VF for VyOS** on that port **plus** every **extra VF** you assign to **other VMs** (validate **N** per port in **`dmesg`** / vendor docs — driver and firmware caps apply). Each VF is a **distinct PCI function**; attach via Proxmox **`hostdev`** per VM.
 
-**Enablement sketch (host, validate on your kernel):** firmware **VT-d** on; **`/etc/modprobe.d/ixgbe.conf`** with **`options ixgbe max_vfs=<N>`** (exact semantics: **per driver/kernel** — confirm with `dmesg` and Intel docs).
+**Enablement sketch (host, validate on your kernel):** firmware **VT-d** on; **`/etc/modprobe.d/<driver>.conf`** with **`options <driver> max_vfs=<N>`** (exact semantics: **per driver/kernel** — for **`ixgbe`** see Intel docs and `dmesg`).
 
 - **PF0 (WAN port):** In the **current** design, **only VyOS** uses a VF here (**WAN**). **Do not** assign **WAN-PF VFs** to other VMs unless intentional. In practice you only need **one usable VF pool** on this port → often **`max_vfs=1`** on PF0 is enough (or a global `max_vfs` where **only the first VF** on PF0 is consumed).
 - **PF1 (LAN / trunk port):** **VyOS LAN** uses **one VF**; each **extra VM** that needs a **LAN-side VF** needs **another** VF from **PF1**. Example: VyOS **+** two other VMs each with **one** VF on PF1 ⇒ **at least 3** VFs must exist on **that** port’s pool (same math as before). **Asymmetric needs are normal:** WAN side **minimal**, LAN side **higher** if the module applies one **N** to both ports, set **N** to the **maximum** required by **either** PF (e.g. **LAN’s** count), then **only attach** the VyOS WAN VF from PF0 and leave spare VFs unused — or use driver-specific options if your distro documents **per-port** VF counts.
@@ -221,7 +223,7 @@ Pi-hole and Tailscale are **inside Proxmox** on **`vmbr-svc`** (no physical cabl
 
 - **Topology (locked — option A):** **single VyOS VM** is the lab's **default gateway**; it carries **WAN VF**, **LAN trunk VF** (private/guest/iot), and one **virtio** interface to **`vmbr-svc`** (no split WAN/LAN VyOS pair).
 - **Purpose:** Default gateway for homelab LAN(s), **NAT**, **firewall**, static/dynamic routing as needed. **Tailscale** runs on a **dedicated LXC** on **`vmbr-svc`**, not on VyOS (see **Tailscale** section).
-- **Interfaces (WAN/LAN):** **Two SR-IOV VFs** on the **Intel X550-T2** — **`ixgbevf`** in VyOS; **WAN VF** = **port 1** (modem); **LAN VF** = **port 2** **802.1Q trunk** to switch with **private / guest / iot** VLAN subinterfaces.  
+- **Interfaces (WAN/LAN):** **Two SR-IOV VFs** on the **dual-port router NIC** (inventory **X550-T2** on **`ixgbe`/`ixgbevf`**) — **WAN VF** = **modem**; **LAN VF** = **802.1Q trunk** to switch with **private / guest / iot** VLAN subinterfaces.  
 - **Interfaces (services stub):** **One virtio** NIC on **`vmbr-svc`** — gateway for **LXCs** and internal VMs; firewall zone typically **same trust as private** (or dedicated **svc** zone).  
 - **Documentation to add:** **WAN** public addressing (DHCP/static per ISP), port forwards, site-to-site or remote access **policy**; record **VF PCI BDFs** next to **WAN/LAN** role. **VLAN IDs, RFC1918 layout, and IoT forward policy** are **locked** in **§ VLANs and IPv4 layout** and **§ IoT firewall exceptions**.
 

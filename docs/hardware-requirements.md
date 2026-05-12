@@ -17,7 +17,7 @@ This document captures **minimum and recommended** hardware for the stated softw
 | **CPU** | Intel **Core i5-7600K** (4c/4t) — adequate for a lean stack; **more RAM** helps before chasing CPU. |
 | **RAM** | **16 GB** installed today — **below** the 32 GB minimum in the table below for a comfortable multi-VM Proxmox host; **upgrade when practical**, not blocked by this doc. |
 | **Storage** | **960 EVO 250 GB** = Proxmox OS · **SN770 1 TB** = VM/LXC + ISOs · **WD Red 3 TB** = bulk — see **§ Disk layout (locked)** below. |
-| **10G / multi-gig NIC** | **Intel X550-T2** (locked choice) — VyOS **WAN + LAN**; see [network-and-services.md](network-and-services.md). |
+| **10G / multi-gig NIC** | **Intel X550-T2** (**current** inventory — **not** a required SKU) — VyOS **WAN + LAN** via **SR-IOV**; see [network-and-services.md](network-and-services.md) and **§ NIC alternatives** below. |
 | **Management NIC** | Onboard **Intel I219-V** — **Proxmox host only**; not the VyOS data path. |
 
 **Platform refresh** (new CPU/RAM/board) remains an **owner decision later**; until then, docs assume this tower.
@@ -61,20 +61,38 @@ Allocate per guest in the network doc; revisit after Proxmox install.
 
 **ZFS on Proxmox:** if used on the **SN770**, popular but this platform has **no ECC** — cap **ARC** on **16 GB RAM** hosts; match risk to how much you value that pool.
 
-## Networking — Intel X550-T2 + onboard management
+## Networking — dual-port router NIC + onboard management
 
-**Design choice (locked):** **Intel X550-T2** provides **two RJ45 ports** (two **PFs**) with **1 / 2.5 / 5 / 10 Gb/s** (10GBASE-T / NBASE-T). **VyOS** uses **two SR-IOV VFs** — **one VF per PF** — for **WAN and LAN** (guest **`ixgbevf`**). **Other VMs** may use **additional VFs** (see [network-and-services.md](network-and-services.md)); size **`max_vfs`** accordingly. **Onboard Intel I219-V** is **1 GbE for Proxmox management only** — not used as VyOS WAN/LAN or primary lab uplink.
+**Architecture (locked):** a **dual-port** PCIe NIC supplies **WAN** and **LAN** to **VyOS** as **two SR-IOV VFs** (**one VF per physical port / PF**). **Onboard Intel I219-V** (**1 GbE**) is **Proxmox management only** — not VyOS WAN/LAN or the primary lab data path.
 
-### Practical notes
+**Current inventory (not locked):** **Intel X550-T2** — two **RJ45** ports, **NBASE-T** (**1 / 2.5 / 5 / 10 Gb/s**), Linux **`ixgbe`** + guest **`ixgbevf`**. Strong fit when the **modem LAN** is **multi-gig** (e.g. **2.5G**) or **10G** and you want headroom.
 
-- **X550-T2** uses the **`ixgbe`** driver on Proxmox/Linux; verify link speed and cable (**Cat6/Cat6a** for longer 10G-T runs).
-- **SR-IOV:** the host retains **PFs** (`ixgbe`); **VyOS** and **other selected VMs** receive **VF** devices via Proxmox **`hostdev`**. Do **not** treat host **PF** IPs as parallel paths into the same L2 as VyOS **WAN/LAN** (or VM VF segments) without **VLAN** discipline (see [network-and-services.md](network-and-services.md)).
+### WAN speed (~1.3 Gbps and similar)
+
+A **true 1 GbE** link to the modem **tops out near ~940–950 Mb/s** TCP after overhead — you **leave bandwidth unused** on a **~1.3 Gbps** plan. Prefer a NIC + cable + modem LAN port that negotiate **at least 2.5 Gb/s** (or **5G / 10G**) on the **WAN** side. **X550-T2** often syncs at **2.5G** or **5G** to many **cable / fiber ONT** multi-gig ports; confirm **modem port speed** and **Cat5e/Cat6** quality.
+
+### NIC alternatives (SKU flexible — verify before buy)
+
+| Option | Typical driver | Notes |
+|--------|----------------|--------|
+| **Intel X550-T2** (or **X550-AT2**) | **`ixgbe`** / **`ixgbevf`** | **Default recommendation** in this repo: proven **SR-IOV** on Proxmox, **NBASE-T**, **RJ45** matches most home modems. |
+| **Intel X710-T2L** (10GBASE-T) | **`i40e`** / **`i40evf`** or **iAVF** | Newer **10G-T**; check **VyOS** + **Proxmox** support for your image/kernel. Often pricier; good **long-life** choice. |
+| **Marvell / Aquantia 10G-T** (e.g. **AQC107**, **AQC113** add-in cards) | **`atlantic`** | **Price/performance**; **SR-IOV** and **Linux** behavior vary by **exact SKU** — **verify** on your target **kernel** and that **VyOS** supports the **VF** path you want. |
+| **Mellanox ConnectX-4 Lx / ConnectX-5** (often **SFP+**) | **`mlx5_core`** | Excellent **SR-IOV**; **RJ45** to modem may need the **right transceiver** or **DAC** — only a fit if **modem** exposes **SFP+** or you use a **media converter** you trust. |
+| **Dual 2.5G** (Intel **i225** / **i226** class) | **`igc`** | **Enough raw speed** for **~1.3 Gbps**; **SR-IOV** is **not** the usual reason people buy these — **confirm** for your **exact** chip and **Proxmox** kernel before planning **VyOS-on-VF** the same way as **`ixgbe`**. If **SR-IOV** is unavailable, you’d fall back to **virtio** or **whole-NIC passthrough** — a **different** topology than this doc’s default. |
+
+**Shopping rule:** for this design, prioritize **dual-port**, **Linux SR-IOV** you can assign **two VFs to VyOS**, **VyOS driver support**, and **WAN link speed** that matches the **modem** (not only **LAN** speed to the switch).
+
+### Practical notes (current X550 path)
+
+- **`ixgbe`** on Proxmox: verify negotiated speed per port; use **Cat6/Cat6a** for **long** **10G-T** runs.
+- **SR-IOV:** host keeps **PFs**; **VyOS** (and optional other VMs) get **VFs** via Proxmox **`hostdev`**. Do **not** mirror **PF IPs** onto the same **L2** as **VyOS WAN/LAN VFs** without strict **VLAN** discipline (see [network-and-services.md](network-and-services.md)).
 
 ### Suggested documentation fields (fill in when cabled)
 
-- **X550 WAN port:** which physical port, negotiated speed, cable type to modem.
-- **X550 LAN port:** speed, cable to switch or downstream LAN.
-- **VF map:** **BDF → guest** for **VyOS** (2) and **every other VM** using an X550 VF; **`ixgbe max_vfs`** value on the host.
+- **WAN port:** physical port, negotiated speed, cable to modem (**match modem’s multi-gig port**).
+- **LAN port:** speed, cable to **managed switch** trunk.
+- **VF map:** **BDF → guest** for **VyOS** (2) and **every other VM** using a VF; **`max_vfs`** (or equivalent) on the host.
 - **Onboard `enp0s31f6` (or equivalent):** static management IP on an **isolated or trusted** management VLAN/L2, if used.
 
 ## Power, cooling, chassis
@@ -90,9 +108,9 @@ Allocate per guest in the network doc; revisit after Proxmox install.
 
 ## Checklist (copy when shopping / commissioning)
 
-- [ ] **X550-T2** installed; **VT-d / IOMMU** enabled in UEFI; **`max_vfs`** covers **VyOS + other VM** VF assignments
+- [ ] **Dual-port router NIC** installed (**X550-T2** or equivalent from **§ NIC alternatives**); **VT-d / IOMMU** enabled in UEFI; **`max_vfs`** covers **VyOS + other VM** VF assignments
 - [ ] **Onboard NIC** reserved for **Proxmox management**; management IP and firewall rules documented
-- [ ] CPU with **virtualization** + **AES-NI** + **IOMMU** (for X550 **VF** assignment to VyOS)
+- [ ] CPU with **virtualization** + **AES-NI** + **IOMMU** (for **VF** assignment to VyOS)
 - [ ] **32 GB RAM** when budget allows (current **16 GB** is tight — see table above)
 - [ ] **Disk layout:** 960 EVO = OS; SN770 = VM/LXC + ISO **storage ID** created and set default; HDD = bulk **mount** (e.g. `/mnt/data`) + backup/NAS role
 - [ ] ECC if using ZFS for important data
