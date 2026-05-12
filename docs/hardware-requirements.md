@@ -5,7 +5,7 @@ This document captures **minimum and recommended** hardware for the stated softw
 ## Role of the machine
 
 - Runs **Proxmox VE** on bare metal with multiple guests (VMs/LXCs).
-- Hosts **VyOS** (routing/firewall), **Pi-hole** (DNS + blocking), and **Tailscale** (placement detailed in [network-and-services.md](network-and-services.md)).
+- **Phase 1:** **VyOS** (routing/firewall). **Target stack:** also **Pi-hole** (DNS + blocking) and **Tailscale** (placement in [network-and-services.md](network-and-services.md)).
 
 ## Chosen platform (current — upgrade deferred)
 
@@ -17,7 +17,7 @@ This document captures **minimum and recommended** hardware for the stated softw
 | **CPU** | Intel **Core i5-7600K** (4c/4t) — adequate for a lean stack; **more RAM** helps before chasing CPU. |
 | **RAM** | **16 GB** installed today — **below** the 32 GB minimum in the table below for a comfortable multi-VM Proxmox host; **upgrade when practical**, not blocked by this doc. |
 | **Storage** | **960 EVO 250 GB** = Proxmox OS · **SN770 1 TB** = VM/LXC + ISOs · **WD Red 3 TB** = bulk — see **§ Disk layout (locked)** below. |
-| **10G / multi-gig NIC** | **Intel X550-T2** (**current** inventory — **not** a required SKU) — VyOS **WAN + LAN** via **SR-IOV**; see [network-and-services.md](network-and-services.md) and **§ NIC alternatives** below. |
+| **10G / multi-gig NIC** | **Intel X550-T2** (**current** inventory — **not** a required SKU). **Phase 1:** **bridges + virtio** to VyOS. **Target:** VyOS **WAN + LAN** via **SR-IOV**; see [network-and-services.md](network-and-services.md) § **Phase 1** and **§ NIC alternatives** below. |
 | **Management NIC** | Onboard **Intel I219-V** — **Proxmox host only**; not the VyOS data path. |
 
 **Platform refresh** (new CPU/RAM/board) remains an **owner decision later**; until then, docs assume this tower.
