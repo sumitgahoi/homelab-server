@@ -1,6 +1,0 @@
----
-- name: Provision VyOS VM on Proxmox (Phase 1 hardware layout)
-  hosts: proxmox_api
-  gather_facts: false
-  roles:
-    - role: proxmox_vyos_vm

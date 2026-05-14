@@ -1,9 +1,0 @@
----
-galaxy_info:
-  role_name: vyos_phase1
-  author: homelab-server
-  description: Phase 1 VyOS — WAN DHCP, LAN static, DHCP server, public DNS for clients.
-  license: MIT
-  min_ansible_version: "2.14"
-dependencies:
-  - ansible.netcommon

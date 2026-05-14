@@ -1,0 +1,40 @@
+---
+# Proxmox API (override in inventory / vault)
+proxmox_api_host: "pve.lan"
+proxmox_api_user: "root@pam"
+proxmox_validate_certs: true
+proxmox_node: "pve"
+
+proxmox_bridge_wan: "vmbr-wan"
+proxmox_bridge_lan: "vmbr-lan"
+proxmox_storage: "local-lvm"
+
+vyos_vmid: 200
+vyos_vm_name: "vyos-phase1"
+vyos_vcpus: 2
+vyos_memory_mb: 1536
+vyos_disk_size_gb: 16
+
+vyos_provision_mode: "create"
+vyos_clone_vmid: null
+
+vyos_wan_if: "eth0"
+vyos_lan_if: "eth1"
+vyos_lan_ipv4: "192.168.1.1"
+vyos_lan_prefix: "24"
+vyos_lan_network: "192.168.1.0/24"
+vyos_dhcp_range_start: "192.168.1.100"
+vyos_dhcp_range_stop: "192.168.1.250"
+vyos_dhcp_shared_network: "LAN"
+
+phase1_dns_provider: "cloudflare"
+
+phase1_dns_map:
+  cloudflare:
+    - "1.1.1.1"
+    - "1.0.0.1"
+  opendns:
+    - "208.67.222.222"
+    - "208.67.220.220"
+
+vyos_ssh_user: "vyos"

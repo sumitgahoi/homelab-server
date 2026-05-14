@@ -1,6 +1,0 @@
----
-- name: Configure VyOS Phase 1 (WAN DHCP, LAN + DHCP + DNS forwarders)
-  hosts: vyos_gateway
-  gather_facts: false
-  roles:
-    - role: vyos_phase1

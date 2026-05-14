@@ -64,7 +64,7 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 
 ## Planned automation
 
-- **Ansible** lives under **`ansible/`** — see **`ansible/README.md`** to **provision** a **VyOS** VM on **Proxmox** and apply **Phase 1** config (bridges + virtio, DHCP, Cloudflare/OpenDNS). Further playbooks may be added later.
+- **Ansible** lives under **`ansible/`** — see **`ansible/README.md`** to **provision** a **VyOS** VM on **Proxmox** and apply **Phase 1** config (bridges + virtio, DHCP, Cloudflare/OpenDNS) via the **`vyos_proxmox`** role and **`playbooks/site.yml`**. Further playbooks may be added later.
 
 ## Repository layout
 
@@ -115,3 +115,4 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 | 2026-05-11 | **Modem dual LAN:** doc note — **VyOS WAN** on **2.5G** modem port when **1G + 2.5G** both available (`hardware-requirements.md` § WAN speed). |
 | 2026-05-12 | **Baby steps rollout:** **Phase 1** VyOS-only / flat LAN / bridges+virtio / Cloudflare or OpenDNS DHCP; **README**, **`agent.md`**, **`network-and-services.md`**, **`hardware-requirements.md`** updated; **target** design retained. |
 | 2026-05-12 | **Ansible:** `ansible/` — **`proxmox_vyos_vm`** + **`vyos_phase1`** roles and **`playbooks/site.yml`** for Proxmox VM + Phase 1 VyOS config. |
+| 2026-05-13 | **Ansible:** merged into single **`vyos_proxmox`** role + **`playbooks/site.yml`** only (tags for provision/configure); **`module_defaults`** for Proxmox API on the provision play. |

@@ -1,43 +1,11 @@
 ---
-# Proxmox API — set via vault, -e, or group_vars (do not commit real passwords)
+# Site-specific overrides (most defaults live in roles/vyos_proxmox/defaults/main.yml)
+
 proxmox_api_host: "pve.example.com"
-proxmox_api_user: "root@pam"
 proxmox_api_password: ""
-proxmox_validate_certs: true
-proxmox_node: "pve"
 
-# Bridges on the Proxmox host (Phase 1 — see docs/network-and-services.md § Phase 1)
-proxmox_bridge_wan: "vmbr-wan"
-proxmox_bridge_lan: "vmbr-lan"
-proxmox_storage: "local-lvm"
-
-# VyOS VM sizing (aligned with docs/network-and-services.md Proxmox mapping)
-vyos_vmid: 200
-vyos_vm_name: "vyos-phase1"
-vyos_vcpus: 2
-vyos_memory_mb: 1536
-vyos_disk_size_gb: 16
-
-# create = new empty disk (install VyOS from ISO via Proxmox console once)
-# clone = full clone from existing VMID (template with VyOS already installed)
-vyos_provision_mode: "create"
-vyos_clone_vmid: null
-
-# VyOS interfaces inside guest: first virtio = WAN, second = LAN
-vyos_wan_if: "eth0"
-vyos_lan_if: "eth1"
-
-# Phase 1 LAN (flat)
 vyos_lan_ipv4: "192.168.1.1"
-vyos_lan_prefix: "24"
-vyos_lan_network: "192.168.1.0/24"
-vyos_dhcp_range_start: "192.168.1.100"
-vyos_dhcp_range_stop: "192.168.1.250"
-
-# cloudflare | opendns
-phase1_dns_provider: "cloudflare"
-
-# SSH to VyOS for configuration play (set to LAN IP if you run Ansible from LAN)
-vyos_ansible_host: "192.168.1.1"
 vyos_ssh_user: "vyos"
-# vyos_ssh_password: set in vault or --extra-vars
+
+# Optional: SSH target if it differs from vyos_lan_ipv4 (jump host / dual-stack)
+# vyos_ansible_host: "192.168.1.1"

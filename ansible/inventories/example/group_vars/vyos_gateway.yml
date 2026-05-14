@@ -2,6 +2,7 @@
 ansible_connection: ansible.netcommon.network_cli
 ansible_network_os: vyos
 ansible_user: "{{ vyos_ssh_user | default('vyos') }}"
+ansible_host: "{{ vyos_ansible_host | default(vyos_lan_ipv4) }}"
 # If using password auth, set vyos_ssh_password in vault and uncomment:
 # ansible_password: "{{ vyos_ssh_password }}"
 # If using keys, set ansible_ssh_private_key_file in inventory or extra-vars.

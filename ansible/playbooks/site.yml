@@ -6,12 +6,21 @@
   hosts: proxmox_api
   gather_facts: false
   tags: [proxmox, provision, vm]
+  module_defaults:
+    group/community.general.proxmox_kvm:
+      api_host: "{{ proxmox_api_host }}"
+      api_user: "{{ proxmox_api_user }}"
+      api_password: "{{ proxmox_api_password }}"
+      validate_certs: "{{ proxmox_validate_certs }}"
+      node: "{{ proxmox_node }}"
   roles:
-    - role: proxmox_vyos_vm
+    - role: vyos_proxmox
+      tasks_from: proxmox.yml
 
 - name: Configure VyOS Phase 1 (WAN DHCP, LAN + DHCP + DNS forwarders)
   hosts: vyos_gateway
   gather_facts: false
   tags: [vyos, configure, phase1]
   roles:
-    - role: vyos_phase1
+    - role: vyos_proxmox
+      tasks_from: configure.yml
