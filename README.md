@@ -25,7 +25,7 @@ The **full design** (VLANs, **`vmbr-svc`**, Pi-hole, Tailscale, IoT policy, SR-I
 - **Now:** documentation only; **Phase 1** build-out is **VyOS-only** (see **Baby steps** above).
 - **Later:** More Ansible roles as the design grows; **`ansible/`** already covers **Phase 1** VyOS on Proxmox ([ansible/README.md](ansible/README.md)).
 
-**Hardware (current):** existing **Intel tower** (Z270 / i5-7600K); **dual-port add-in NIC** (inventory: **Intel X550-T2**). **Phase 1:** **bridges + virtio** to VyOS for WAN/LAN. **Target:** **SR-IOV VFs** + VLAN trunk (see [network-and-services.md](docs/network-and-services.md)). **Onboard 1GbE** for **Proxmox management only**. **NIC model is not locked** — see [hardware requirements](docs/hardware-requirements.md) § **NIC alternatives**. **Disks:** **Samsung 960 EVO 250 GB** = Proxmox OS · **WD SN770 1 TB** = VMs/LXCs + ISOs · **WD Red 3 TB** = bulk/NAS. Platform upgrade is **optional / later**.
+**Hardware (current):** existing **Intel tower** (Z270 / i5-7600K); **dual-port add-in NIC** (inventory: **Intel X550-T2**). **Planned upgrade:** **Core Ultra 7 270K Plus** + **ASUS Pro WS W880-ACE SE** — see [hardware requirements](docs/hardware-requirements.md) § **Planned platform**. **Phase 1:** **bridges + virtio** to VyOS for WAN/LAN. **Target:** **SR-IOV VFs** + VLAN trunk (see [network-and-services.md](docs/network-and-services.md)). **Onboard 1GbE** for **Proxmox management only**. **NIC model is not locked** — see [hardware requirements](docs/hardware-requirements.md) § **NIC alternatives**. **Disks:** **Samsung 960 EVO 250 GB** = Proxmox OS · **WD SN770 1 TB** = VMs/LXCs + ISOs · **WD Red 3 TB** = bulk/NAS.
 
 ## Requirements summary
 

@@ -7,20 +7,67 @@ This document captures **minimum and recommended** hardware for the stated softw
 - Runs **Proxmox VE** on bare metal with multiple guests (VMs/LXCs).
 - **Phase 1:** **VyOS** (routing/firewall). **Target stack:** also **Pi-hole** (DNS + blocking) and **Tailscale** (placement in [network-and-services.md](network-and-services.md)).
 
-## Chosen platform (current — upgrade deferred)
+## Platform status
 
-**Canonical inventory (models, disks, NICs, constraints)** lives in **[`agent.md`](../agent.md#current-hardware-inventory-read-before-recommending-services)** — agents should read that first when recommending services.
+| | Hardware |
+|--|----------|
+| **In service today** | ASUS **Z270E** + **i5-7600K**, **16 GB** RAM — see **[`agent.md`](../agent.md#current-hardware-inventory-read-before-recommending-services)**. |
+| **Planned upgrade (chosen)** | **Intel Core Ultra 7 processor 270K Plus** + **ASUS Pro WS W880-ACE SE** — see **§ Planned platform — why 270K Plus + W880** below. |
 
-| Item | Planned hardware (summary) |
-|------|-------------------|
-| **Board** | ASUS **ROG STRIX Z270E GAMING** |
-| **CPU** | Intel **Core i5-7600K** (4c/4t) — adequate for a lean stack; **more RAM** helps before chasing CPU. |
-| **RAM** | **16 GB** installed today — **below** the 32 GB minimum in the table below for a comfortable multi-VM Proxmox host; **upgrade when practical**, not blocked by this doc. |
-| **Storage** | **960 EVO 250 GB** = Proxmox OS · **SN770 1 TB** = VM/LXC + ISOs · **WD Red 3 TB** = bulk — see **§ Disk layout (locked)** below. |
-| **10G / multi-gig NIC** | **Intel X550-T2** (**current** inventory — **not** a required SKU). **Phase 1:** **bridges + virtio** to VyOS. **Target:** VyOS **WAN + LAN** via **SR-IOV**; see [network-and-services.md](network-and-services.md) § **Phase 1** and **§ NIC alternatives** below. |
-| **Management NIC** | Onboard **Intel I219-V** — **Proxmox host only**; not the VyOS data path. |
+Disks (**960 EVO** / **SN770** / **WD Red**) and **X550-T2** router NIC are **carried forward** unless noted otherwise.
 
-**Platform refresh** (new CPU/RAM/board) remains an **owner decision later**; until then, docs assume this tower.
+## Planned platform — why Core Ultra 7 270K Plus + Pro WS W880-ACE SE
+
+**Not** Raptor Lake (13th/14th gen **13700K / 14700K / 14900K**). The chosen CPU is **Arrow Lake Refresh** (**Core Ultra Series 2**), **LGA1851** — [Intel ARK: 270K Plus](https://www.intel.com/content/www/us/en/products/sku/245692/intel-core-ultra-7-processor-270k-plus-36m-cache-up-to-5-50-ghz/specifications.html).
+
+### Why this pair over the main alternatives
+
+| Factor | **270K Plus + W880** | **Typical alternative we passed on** |
+|--------|----------------------|--------------------------------------|
+| **Workload headroom** | **24 cores / 24 threads** for Proxmox running **VyOS**, **Pi-hole**, **Tailscale**, **Vaultwarden**, **dev node**, **NAS**, **Navidrome**, **Jellyfin**, and optional **Immich / Frigate / Bazzite** | **Ryzen 9 7900** (12C/24T, **88 W** stock PPT) — strong efficiency, but less room for concurrent heavy guests without compromise |
+| **Media / inference** | **Xe iGPU**, **Quick Sync**, **OpenVINO** on CPU/GPU/NPU ([Intel specs](https://www.intel.com/content/www/us/en/products/sku/245692/intel-core-ultra-7-processor-270k-plus-36m-cache-up-to-5-50-ghz/specifications.html)) — useful for **Jellyfin** (decode), **Frigate** / **Immich**-style paths vs CPU-only | **Ryzen 9 7900** — minimal desktop iGPU; offload leans on **Coral / discrete GPU** |
+| **Virtualization** | **VT-x / VT-d**; **SR-IOV** + **GPU passthrough** (Bazzite) on a **workstation** board with documented **IOMMU** use cases | Same class on modern AMD, but **Intel iGPU + VF** story matched this build |
+| **Board role** | **Pro WS W880-ACE SE** — workstation **LGA1851**, **ECC-capable platform** (confirm **CPU + DIMM QVL**), stable firmware target for **24/7 Proxmox** | Retail **Z890** from a bundle — fine for a desktop; **W880** kept for **ECC path** and **WS** feature set |
+| **Cost** | Bundle CPU + RAM + consumer board, then **sell Z890** and install CPU on **W880** (~**$1000** class budget discussed) | **Ryzen 9 7900 + AM5** — competitive, but weaker **iGPU** and lower core count at similar “efficiency-first” positioning |
+| **Power at stock** | **125 W** base, **250 W** max turbo — **hotter and hungrier** under full all-core load than **7900** | **7900** wins **sustained MT power** (~**88 W** PPT cap) — see **§ Power limits (PL1 / PL2)** to close the gap when idle |
+
+**Ultra 9 285K** was not required: reviews place **270K Plus** near **285K** productivity for much less cost ([PCMag](https://ca.pcmag.com/processors/6502/intel-core-ultra-7-270k-plus), [Phoronix](https://www.phoronix.com/review/intel-core-ultra-7-270k-plus/15)).
+
+### Power limits (PL1 / PL2) — verified behavior
+
+Intel defines stock power for the **270K Plus** as:
+
+| Intel parameter | Stock value (270K Plus) |
+|-----------------|-------------------------|
+| **Processor base power** (maps to **PL1** in practice) | **125 W** |
+| **Maximum turbo power** (**PL2** / MTP class) | **250 W** |
+
+Source: [Intel Core Ultra 7 processor 270K Plus specifications](https://www.intel.com/content/www/us/en/products/sku/245692/intel-core-ultra-7-processor-270k-plus-36m-cache-up-to-5-50-ghz/specifications.html).
+
+**BIOS (ASUS Intel 800-series family):** ASUS documents **Long Duration Package Power Limit** = **PL1** (watts) and **Short Duration Package Power Limit** = **PL2** (watts) under CPU power management — see the **Intel 800 Series** BIOS manual ([ASUS download center](https://www.asus.com/support/download-center/); same PL1/PL2 naming on **Z890** boards, e.g. [Intel 800 Series BIOS manual excerpt](https://dlcdnets.asus.com/pub/ASUS/mb/13MANUAL/J25827_Intel_800_Series_BIOS_manual_EM_WEB.pdf)). The **Pro WS W880-ACE SE** uses the **Intel W880 / LGA1851** stack; on first boot open **Advanced Mode → Ai Tweaker** (or **Advanced**) and locate **CPU Power Management** / **VRM** — confirm the **Long Duration** / **Short Duration Package Power Limit** fields match the manual.
+
+**Homelab efficiency profile (owner choice):** cap both limits to the same value so burst and sustained package power align — e.g.:
+
+| Setting | Value | Effect |
+|---------|-------|--------|
+| **PL1** (Long Duration Package Power Limit) | **65 W** | Sustained all-core power stays in a **65 W-class** envelope (similar intent to **Ryzen 9 7900**’s **88 W** PPT cap). |
+| **PL2** (Short Duration Package Power Limit) | **65 W** | Short turbo spikes are **not** allowed above PL1 — avoids **250 W** bursts. |
+
+Setting **PL1 = PL2 = 65 W** is the same idea validated on Arrow Lake in reviews (e.g. **285K** at **65 W** PL via Intel XTU on **Z890**, [Club386](https://club386.com/heres-what-happens-when-you-run-an-intel-core-ultra-9-285k-at-65w/)) — **~60%** of full-power MT throughput in exchange for much lower power. **Trade-off:** all-core performance drops versus stock **125 / 250 W**; **single-thread** and light background load are largely preserved.
+
+**Notes:**
+
+- This is a **firmware** setting (persist until changed), not a one-time OS tweak — you can restore **125 / 250 W** later for heavy transcodes or batch jobs.
+- Also set **Package Power Time Window** / any **Multi-Core Enhancement** or **Intel Baseline / Performance** profile so the board does not override your caps (ASUS **Intel Default** vs **Performance** profiles differ — [TechPowerUp on Z890 defaults](https://www.techpowerup.com/326541/intel-z890-chipset-motherboards-to-launch-with-default-power-profile-out-of-the-box)).
+- **65 W** is a starting point; **80–125 W** PL1 is a middle ground if guests feel slow.
+- Re-validate **thermals** and **Proxmox** guest performance after changing PL limits.
+
+### Before install checklist (270K Plus + W880)
+
+- [ ] **CPU support:** **270K Plus** listed on [Pro WS W880-ACE SE CPU support](https://www.asus.com/motherboards-components/motherboards/workstation/pro-ws-w880-ace-se/helpdesk_cpu_support/) — update BIOS if needed.
+- [ ] **RAM:** plan **64 GB+**; if using **ECC**, match **W880 + CPU QVL** (bundle **Crucial non-ECC** may be interim only).
+- [ ] **PL1 / PL2** set in BIOS for intended **efficiency vs performance** profile.
+- [ ] **VT-d / IOMMU** enabled; **SR-IOV** and **GPU passthrough** tested per [network doc](network-and-services.md) when adopted.
 
 ## CPU
 
@@ -91,6 +138,16 @@ A **true 1 GbE** link to the modem **tops out near ~940–950 Mb/s** TCP after o
 
 - **`ixgbe`** on Proxmox: verify negotiated speed per port; use **Cat6/Cat6a** for **long** **10G-T** runs.
 - **SR-IOV:** host keeps **PFs**; **VyOS** (and optional other VMs) get **VFs** via Proxmox **`hostdev`**. Do **not** mirror **PF IPs** onto the same **L2** as **VyOS WAN/LAN VFs** without strict **VLAN** discipline (see [network-and-services.md](network-and-services.md)).
+
+### Proxmox host — GRUB (legacy Intel tower, SR-IOV)
+
+On this **legacy Linux tower** (ASUS **Z270** / **Kaby Lake** class), **SR-IOV and VF assignment** required explicit **kernel command-line** options in addition to **VT-d / IOMMU** in firmware. The working **`GRUB_CMDLINE_LINUX_DEFAULT`** used on the host is:
+
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="quiet pci=realloc,assign-busses,hpbussize=4 intel_iommu=on iommu=pt"
+```
+
+Edit **`/etc/default/grub`**, merge with any other parameters you already need, then apply on Debian/Proxmox (`update-grub` / **`proxmox-boot-tool refresh`** as appropriate) and reboot. **Your board, BIOS, and slot layout may differ** — always validate **IOMMU groups** and **VF enumeration** after changes (`dmesg`, **`/sys/kernel/iommu_groups/`**, Proxmox **node** shell).
 
 ### Suggested documentation fields (fill in when cabled)
 

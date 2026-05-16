@@ -17,7 +17,9 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 
 ## Current hardware inventory (read before recommending services)
 
-**Use this section to size RAM, CPU, storage I/O, and PCIe before suggesting new workloads.** Upgrade path is deferred; assume this machine unless the owner says otherwise.
+**Use this section to size RAM, CPU, storage I/O, and PCIe before suggesting new workloads.** **In service today:** Z270 / i5-7600K below. **Planned upgrade:** **Core Ultra 7 270K Plus** + **ASUS Pro WS W880-ACE SE** — rationale and **PL1/PL2** tuning in **`docs/hardware-requirements.md` § Planned platform — why 270K Plus + W880**.
+
+### In service today
 
 | Category | Detail |
 |----------|--------|
@@ -44,7 +46,7 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 
 1. **Hypervisor as base** — **Proxmox VE** runs directly on bare metal; workloads are **VMs and LXCs** (containers).
 2. **Disk layout (locked)** — **Samsung 960 EVO 250 GB** = **Proxmox OS only**. **WD Black SN770 1 TB** = **all VM and LXC disks** plus **ISO/template** storage (default fast datastore). **WD Red 3 TB** = **bulk data** (NAS shares, media, backups). See **[`docs/hardware-requirements.md`](docs/hardware-requirements.md)** for Proxmox storage wiring detail.
-3. **Hardware host (current)** — Same tower as **[Current hardware inventory](#current-hardware-inventory-read-before-recommending-services)**. **Platform upgrade** (CPU/RAM/motherboard) is **deferred**; revisit when budget or headroom requires it.
+3. **Hardware host** — Same tower as **[Current hardware inventory](#current-hardware-inventory-read-before-recommending-services)** today. **Planned upgrade:** **Intel Core Ultra 7 270K Plus** on **ASUS Pro WS W880-ACE SE** (see **`docs/hardware-requirements.md` § Planned platform**). **BIOS power caps:** **PL1 = PL2 = 65 W** optional profile for 24/7 efficiency when not saturating CPU.
 4. **NIC policy — Phase 1 vs target, PCIe SKU flexible**  
    - **Phase 1:** **VyOS WAN/LAN** via **Proxmox `vmbr`** bridges with **physical NIC ports** as slaves and **virtio** into the VyOS VM — **no SR-IOV**, **no PF/VF split** rules yet. **Document** bridge names and which RJ45 is WAN vs LAN.  
    - **Target architecture (locked when you adopt it):** **VyOS** uses **exactly two SR-IOV VFs** — **one VF per physical port** on a **dual-port NIC** (**WAN** + **LAN**). Map **modem → WAN port’s VF**, **managed switch trunk → LAN port’s VF**; document **RJ45 ↔ role** when cabled. **Do not** use either **PF** as a **Proxmox `vmbr` uplink** on the **same RJ45** **while** VyOS holds the **production VF** for that port — the **VF** owns that cable; the **PF** stays for **SR-IOV parenting** only. See **`docs/network-and-services.md` § SR-IOV nuance — LAN port**.  
@@ -116,3 +118,4 @@ The repo describes the **full target** stack (segmented VLANs, **`vmbr-svc`**, P
 | 2026-05-12 | **Baby steps rollout:** **Phase 1** VyOS-only / flat LAN / bridges+virtio / Cloudflare or OpenDNS DHCP; **README**, **`agent.md`**, **`network-and-services.md`**, **`hardware-requirements.md`** updated; **target** design retained. |
 | 2026-05-12 | **Ansible:** `ansible/` — **`proxmox_vyos_vm`** + **`vyos_phase1`** roles and **`playbooks/site.yml`** for Proxmox VM + Phase 1 VyOS config. |
 | 2026-05-13 | **Ansible:** merged into single **`vyos_proxmox`** role + **`playbooks/site.yml`** only (tags for provision/configure); **`module_defaults`** for Proxmox API on the provision play. |
+| 2026-05-16 | **Planned platform:** **Core Ultra 7 270K Plus** + **ASUS Pro WS W880-ACE SE** — decision rationale, power comparison vs **Ryzen 9 7900**, verified **PL1/PL2** BIOS caps in **`docs/hardware-requirements.md`**. |
