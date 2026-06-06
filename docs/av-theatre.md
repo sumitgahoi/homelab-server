@@ -46,9 +46,9 @@ Logical design for the **Denon AVR-X3700H**-based theatre. Parts list: **`equipm
      │  · HDMI out        ─── HDMI homerun ──────────────────────────► [ LG OLED 65″ B7 ]
      └──────────────────┘
 
-  Furman → Denon, Hypex, sources (dedicated basement circuit → planned)
-  PDU → Proxmox, modem, switch (same dedicated circuit → planned)
-  HSU sub → local AC in family room (separate circuit)
+  Furman → Denon, Hypex, sources (socket A, LiFT filtered)
+  Tripp Lite PDU → Proxmox (+ RTX 5060 Ti), modem, switch (CST1500SUC on socket B, not through Furman)
+  HSU sub → local AC in family room (existing circuit)
   Sources → CBS350 (basement switch)
 ```
 
@@ -125,31 +125,41 @@ Set **HDMI CEC (HDMI Control)** on Denon and TV so one remote can switch inputs 
 
 ## Power
 
-### Basement rack — dedicated circuit (planned)
+### Basement rack — dedicated circuit (**decided**)
 
-The **basement rack** will run on a **dedicated electrical line** (separate breaker) — not shared with general basement or family room loads. Target: stable power for **AV + homelab** without dimmer- or appliance-induced noise on the same branch.
+One **20 A** dedicated branch (**12 AWG copper**) feeds a rack **duplex**. **Socket A** → **Furman PST-8 (LiFT)** for AV; **socket B** → **CyberPower CST1500SUC** → **Tripp Lite PDU** for homelab. **Proxmox is not on the Furman.**
 
 ```text
-  Panel breaker (dedicated) ──► basement rack receptacle(s)
-                                      ├── PDU1215 → Proxmox, modem, CBS350
-                                      └── Furman PST-8 → Denon, Hypex, PS5, Switch 2, Apple TV
+  Panel ── 20 A "Basement rack" (12 AWG) ──► duplex
+                    │
+         Socket A ──┴── Furman PST-8 → Denon, Hypex, PS5, Switch 2, Apple TV
+         Socket B ───── CyberPower CST1500SUC → Tripp Lite PDU → Proxmox (+ RTX 5060 Ti), S33, CBS350
 ```
 
-**Family room is out of scope** for this circuit — **LG B7** and **HSU sub** use **local room outlets** upstairs.
+**Load planning:** **~14 A** worst-case aligned peak (**~6–7 A** homelab with **5060 Ti** + **~8 A** AV transient) vs **20 A** breaker — **~6 A** headroom. **Single homerun — no change with GPU.**
+
+**Family room is out of scope** — **LG B7** and **HSU sub** on existing room circuits upstairs.
 
 | Location | Gear | Power source |
 |----------|------|--------------|
-| **Basement rack** | **Denon**, **Hypex NCx500**, **PS5**, **Switch 2**, **Apple TV** | **Furman PST-8** ← dedicated basement circuit |
-| **Basement rack** | **Proxmox host**, switch, modem | **PDU1215** ← same dedicated circuit (or separate receptacle — document at install) |
+| **Basement rack** | **Denon**, **Hypex NCx500**, **PS5**, **Switch 2**, **Apple TV** | **Furman** ← **socket A** |
+| **Basement rack** | **Proxmox** (+ **5060 Ti**), modem, switch | **CST1500SUC** → **PDU** ← **socket B** |
 | **Family room** | **HSU VTF-15H MK2**, **LG B7** | **Local outlets** (existing circuits) |
 
-**After electrician install — record here:**
+**UPS (homelab only):** **CyberPower CST1500SUC** — see **`equipment-inventory.md` § UPS**; **AV not on UPS**.
+
+**When a second 20 A homerun would matter (optional, not required now):**
+
+- **Nuisance trips** — sustained homelab **>12 A** plus AV peaks on the **shared** breaker (still unlikely with **5060 Ti** + current AV stack).
+- **Major expansion** — **second server**, **second GPU**, or **heavy PoE** load beyond current planning.
+- **Voltage sag under load** — marginal with **SMPS** Hypex; regulated GPU PSU handles brief dips.
+
+**After install — record here:**
 
 | Item | Value |
 |------|--------|
-| Breaker size / panel label | |
-| Receptacle count at rack | |
-| AV (**Furman**) vs homelab (**PDU**) same or split circuit | |
+| Breaker label | **20 A — Basement rack** |
+| Wire gauge | **12 AWG copper** |
 | Install date | |
 
 ## Commissioning checklist

@@ -39,6 +39,17 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
 
 Set **`max_vfs`** on the host driver so each PF exposes enough VFs for VyOS plus any other VM assignments. Verify with `dmesg` and IOMMU groups after reboot.
 
+## GPU — RTX 5060 Ti
+
+| Item | Detail |
+|------|--------|
+| **Card** | **NVIDIA GeForce RTX 5060 Ti** — prefer **16 GB GDDR7** |
+| **TGP** | **180 W** (reference); **1× PCIe 8-pin** |
+| **PSU** | **Seasonic GX-850** — NVIDIA min **600 W** system; **850 W** has margin |
+| **Use** | **GPU passthrough** to a VM, host transcode (**Jellyfin** / **Frigate**), or **AI** workloads — document assignment at install |
+
+**Branch impact:** adds up to **~180 W** (~**1.5 A**) on **socket B** homelab peak — **single 20 A** homerun remains sufficient (see **§ Basement dedicated power**).
+
 ## Internal bridge — `vmbr-svc`
 
 Linux bridge with **no physical slave** — internal stub for Pi-hole, Tailscale, and VyOS virtio. Subnet **`10.10.0.0/24`** — see **`vyos.md` § Internal stub**.
@@ -59,6 +70,7 @@ Create when you move past Phase 1.
 - [ ] **32 GB DDR5** installed; plan **64 GB+** for full stack
 - [ ] **PL1 / PL2** set for efficiency vs performance
 - [ ] **VT-d / IOMMU** enabled
+- [ ] **GPU** clearance in case; **Above 4G Decoding** + **Re-Size BAR** if using passthrough
 - [ ] Case fits **3× HDD** + **PA120 SE**
 
 ## Automation

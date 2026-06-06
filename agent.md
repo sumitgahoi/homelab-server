@@ -28,9 +28,11 @@ Document and automate:
 | **Router NIC** | **10Gtek X550-T2 clone** — WAN + LAN to VyOS |
 | **Storage** | 960 EVO = OS · SN770 = VMs/LXCs · WD Red = bulk |
 | **ISP / WAN** | **Xfinity 2 Gbps** · **Arris S33** modem (**2.5G** → VyOS WAN) |
-| **Rack / LAN** | Eaton **SR18UB**, **PDU1215**, Cisco **CBS350-24FP-4G** |
+| **Rack / LAN** | Eaton **SR18UB**, **Tripp Lite PDU**, Cisco **CBS350-24FP-4G** |
 | **Case** | **Open** — must fit **3× HDD** + **PA120 SE** |
-| **AV power** | **Furman PST-8** on **planned dedicated basement circuit** |
+| **GPU** | **NVIDIA RTX 5060 Ti** (**16 GB**, **180 W** TGP) in Proxmox host |
+| **Basement power** | **1× 20 A** (**12 AWG**) duplex — **Furman** (socket A, AV) + **Tripp Lite PDU** (socket B, homelab) — **GPU does not require a second homerun** |
+| **UPS** | **CyberPower CST1500SUC** — homelab path only (**NUT** on Proxmox); AV on **Furman** |
 | **AV core** | **Denon AVR-X3700H** · **Hypex NCx500** (3ch) · **HSU Research VTF-15H MK2** |
 | **AV speakers** | **3× B&W CWM73 S2** (LCR) · **2× CWM663** (surround) · **2× CCM662** (Atmos) |
 | **Display / sources** | **LG B7** + speakers/sub in **family room** · **Denon / Hypex / sources** in **basement rack** · wiring **done** |
@@ -83,4 +85,5 @@ Long-term locked choices. **Phase 1** implements only the VyOS subset.
 | **Tailscale** | `tag:homelab-sr`, approve `10.10.0.0/24` + `10.10.10.0/24` — **`docs/tailscale.md`** |
 | **Automation** | Shell scripts, not Ansible |
 | **AV physical layout** | **Basement rack** = Denon, Hypex, Furman, sources; **family room** = TV, all speakers, HSU sub; structured wiring **complete** — **`docs/av-theatre.md`** |
-| **Basement rack power** | **Dedicated electrical line planned** — feeds **PDU1215** + **Furman**; family room TV/sub on separate circuits |
+| **Basement rack power** | **1× 20 A** (**12 AWG**) — Furman **socket A** + PDU **socket B**; **5060 Ti** stays within single branch — **`docs/equipment-inventory.md` § Rack and power** |
+| **Homelab UPS** | **CyberPower CST1500SUC** (**1500 VA / 900 W**) — homelab path only, **NUT** on Proxmox — **`docs/equipment-inventory.md` § UPS** |
