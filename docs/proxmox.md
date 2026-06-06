@@ -39,16 +39,18 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
 
 Set **`max_vfs`** on the host driver so each PF exposes enough VFs for VyOS plus any other VM assignments. Verify with `dmesg` and IOMMU groups after reboot.
 
-## GPU — RTX 5060 Ti
+## GPU — RTX 5060 Ti *(planned)*
+
+On **`equipment-inventory.md` § Future shopping list** — not purchased yet. Host is planned around this card:
 
 | Item | Detail |
 |------|--------|
 | **Card** | **NVIDIA GeForce RTX 5060 Ti** — prefer **16 GB GDDR7** |
 | **TGP** | **180 W** (reference); **1× PCIe 8-pin** |
 | **PSU** | **Seasonic GX-850** — NVIDIA min **600 W** system; **850 W** has margin |
-| **Use** | **GPU passthrough** to a VM, host transcode (**Jellyfin** / **Frigate**), or **AI** workloads — document assignment at install |
+| **Use** | **GPU passthrough** to a VM, host transcode (**Jellyfin** / **Frigate**), or **AI** workloads |
 
-**Branch impact:** adds up to **~180 W** (~**1.5 A**) on **socket B** homelab peak — **single 20 A** homerun remains sufficient (see **§ Basement dedicated power**).
+**Branch / UPS impact:** already accounted in inventory power and **CST1500SUC** sizing — **single 20 A** homerun remains sufficient.
 
 ## Internal bridge — `vmbr-svc`
 

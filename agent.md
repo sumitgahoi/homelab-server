@@ -30,10 +30,10 @@ Document and automate:
 | **ISP / WAN** | **Xfinity 2 Gbps** · **Arris S33** modem (**2.5G** → VyOS WAN) |
 | **Rack / LAN** | Eaton **SR18UB**, **Tripp Lite PDU**, Cisco **CBS350-24FP-4G** |
 | **Case** | **Open** — must fit **3× HDD** + **PA120 SE** |
-| **GPU** | **NVIDIA RTX 5060 Ti** (**16 GB**, **180 W** TGP) in Proxmox host |
+| **GPU** | **RTX 5060 Ti** (**16 GB**) — **planned**, not purchased — **`docs/equipment-inventory.md` § Future shopping list** |
 | **Basement power** | **1× 20 A** (**12 AWG**) duplex — **Furman** (socket A, AV) + **Tripp Lite PDU** (socket B, homelab) — **GPU does not require a second homerun** |
 | **UPS** | **CyberPower CST1500SUC** — homelab path only (**NUT** on Proxmox); AV on **Furman** |
-| **AV core** | **Denon AVR-X3700H** · **Hypex NCx500** (3ch) · **HSU Research VTF-15H MK2** |
+| **AV core** | **Denon AVR-X3700H** · **Buckeye Hypex NCx500** (3ch, **2U vented shelf**) · **HSU Research VTF-15H MK2** |
 | **AV speakers** | **3× B&W CWM73 S2** (LCR) · **2× CWM663** (surround) · **2× CCM662** (Atmos) |
 | **Display / sources** | **LG B7** + speakers/sub in **family room** · **Denon / Hypex / sources** in **basement rack** · wiring **done** |
 
@@ -60,7 +60,8 @@ Long-term locked choices. **Phase 1** implements only the VyOS subset.
 | Path | Role |
 |------|------|
 | `agent.md` | This file — context for humans and agents |
-| `docs/equipment-inventory.md` | Parts list and cabling |
+| `docs/equipment-inventory.md` | Parts list, cabling, **future shopping list** |
+| `docs/rack-layout.md` | Eaton SR18UB U-by-U layout, mounting, cabling order |
 | `docs/av-theatre.md` | AV signal flow, pre-outs, Audyssey, HDMI |
 | `docs/proxmox.md` | Hypervisor, storage, bridges, SR-IOV |
 | `docs/vyos.md` | Router — Phase 1 + target VLANs and firewall |
@@ -87,3 +88,6 @@ Long-term locked choices. **Phase 1** implements only the VyOS subset.
 | **AV physical layout** | **Basement rack** = Denon, Hypex, Furman, sources; **family room** = TV, all speakers, HSU sub; structured wiring **complete** — **`docs/av-theatre.md`** |
 | **Basement rack power** | **1× 20 A** (**12 AWG**) — Furman **socket A** + PDU **socket B**; **5060 Ti** stays within single branch — **`docs/equipment-inventory.md` § Rack and power** |
 | **Homelab UPS** | **CyberPower CST1500SUC** (**1500 VA / 900 W**) — homelab path only, **NUT** on Proxmox — **`docs/equipment-inventory.md` § UPS** |
+| **Rack layout** | **SR18UB** — network + AV in rack (**~15U**); **Proxmox** floor; **UPS** on top; **Hypex** on **2U vented shelf** — **`docs/rack-layout.md`** |
+| **Hypex NCx500 mount** | **Buckeye** desktop case on **2U vented shelf** — no Buckeye rack case upgrade |
+| **Future AV amp** | **Buckeye NCx252MP 4ch** on **U4–U5** shelf — surround + Atmos off Denon pre-outs — **`docs/equipment-inventory.md` § Future shopping list** |

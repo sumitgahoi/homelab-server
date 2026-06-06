@@ -1,12 +1,12 @@
 # AV home theatre
 
-Logical design for the **Denon AVR-X3700H**-based theatre. Parts list: **`equipment-inventory.md`**.
+Logical design for the **Denon AVR-X3700H**-based theatre. Parts list: **`equipment-inventory.md`**. Rack placement: **`rack-layout.md`**.
 
 ## Physical layout
 
 | Location | What lives there |
 |----------|------------------|
-| **Basement rack** | **Denon AVR-X3700H**, **Hypex NCx500**, **Furman**, **PS5**, **Switch 2**, **Apple TV** |
+| **Basement rack** | **Denon AVR-X3700H**, **Hypex NCx500** (**Buckeye**, **2U vented shelf**), **Furman**, **PS5**, **Switch 2**, **Apple TV** |
 | **First floor — family room** | **LG OLED 65″ B7**, **3× CWM73 S2**, **2× CWM663**, **2× CCM662**, **HSU VTF-15H MK2** |
 
 **Structured wiring is complete** between basement and family room — **HDMI**, **speaker homeruns**, and **sub LFE**. Rack-side terminations go to **Denon / Hypex**; room-side terminations go to **speakers**, **sub**, and **TV**.
@@ -27,6 +27,19 @@ Logical design for the **Denon AVR-X3700H**-based theatre. Parts list: **`equipm
 | **Sub** | **HSU VTF-15H MK2** | Denon **sub out (LFE)** → pre-run RCA |
 
 **Denon speaker config:** assign **Front L/R/C** as **Pre-out** (not amp). Assign **Surround** and **Height / Top Front** (or **Top Middle**) for the **CWM663** and **CCM662** pairs. Sub = **1× LFE**.
+
+**Today:** **Surround** and **Atmos** use **Denon internal amps**. **Future:** same channels move to **Buckeye NCx252MP 4ch** via pre-outs — see **§ Future amplification** and **`equipment-inventory.md` § Future shopping list**.
+
+## Future amplification (planned)
+
+| Item | Detail |
+|------|--------|
+| **Amp** | **Buckeye Hypex NCx252MP** — **4-channel** (**12″ × 13″ × 3.5″**) |
+| **Mount** | **2U vented shelf** at rack **U4–U5** — below **NCx500** — **`rack-layout.md`** |
+| **Channels** | ch **1–2** → **CWM663** surround · ch **3–4** → **CCM662** Atmos |
+| **Denon** | **Surround** + **Height** → **Pre-out**; disable internal amps for those channels |
+| **Power** | **Furman** (**socket A**) — low draw vs **NCx500**; **20 A** branch unchanged |
+| **Install** | **Re-run Audyssey**; label **pre-out → NCx252MP** RCA map; homeruns unchanged |
 
 ## Signal flow
 

@@ -1,8 +1,10 @@
 # Equipment inventory
 
-Parts list for **homelab** and **AV home theatre**. Homelab services: `proxmox.md`, `vyos.md`, etc. AV design: **`av-theatre.md`**. Context: **`agent.md`**.
+Parts list for **homelab** and **AV home theatre**. Homelab services: `proxmox.md`, `vyos.md`, etc. AV design: **`av-theatre.md`**. Rack U-by-U layout: **`rack-layout.md`**. Context: **`agent.md`**.
 
 **Last updated:** 2026-06-06
+
+**Future purchases:** **`§ Future shopping list`** — **RTX 5060 Ti**, **Buckeye NCx252MP 4ch**; rack/power/AV docs reserve space and topology for both.
 
 ## Physical layout
 
@@ -40,7 +42,7 @@ One **20 A** dedicated circuit (**12 AWG copper**) feeds a **duplex receptacle**
   Panel ── 20 A "Basement rack" (12 AWG) ──► duplex at rack
                     │
          Socket A ──┴── Furman PST-8 (LiFT) → Denon, Hypex NCx500, PS5, Switch 2, Apple TV
-         Socket B ───── CyberPower CST1500SUC → Tripp Lite PDU → Proxmox, S33 modem, CBS350
+         Socket B ───── CyberPower CST1500SUC (on cabinet top) → Tripp Lite PDU → Proxmox, S33 modem, CBS350
 ```
 
 | Metric | Value |
@@ -78,12 +80,12 @@ One **20 A** dedicated circuit (**12 AWG copper**) feeds a **duplex receptacle**
 
 | Load | Typical | Peak |
 |------|---------|------|
-| Proxmox + **RTX 5060 Ti** | **200–350 W** | **~550 W** |
+| Proxmox + **RTX 5060 Ti** *(planned)* | **200–350 W** | **~550 W** |
 | **S33** modem | **~10 W** | **~15 W** |
 | **CBS350** | **~50 W** | **~100 W** |
 | **Total** | **~300 W** | **~650 W** vs **900 W** UPS rating |
 
-**Install:** **Mini-tower** on a **shelf** in **Eaton SR18UB** (not 2U rackmount). Use **6 battery-backed** outlets for the **PDU** plug. **USB** → **Proxmox** for **NUT** (`usbhid-ups`; add **`usbcore.autosuspend=-1`** in GRUB if USB flaps). Runtime at **~650 W** is short (**~3–5 min** est.) — enough for **NUT** shutdown, not long runtime. Does **not** change **single 20 A** branch sizing.
+**Install:** **On top of SR18UB cabinet** (mini-tower, ~**14″** tall); **6 battery-backed** outlets → **PDU** plug. **USB** → **Proxmox** for **NUT** (`usbhid-ups`; add **`usbcore.autosuspend=-1`** in GRUB if USB flaps). Runtime at **~650 W** is short (**~3–5 min** est.) — enough for **NUT** shutdown. Placement: **`rack-layout.md`**.
 
 ## Network
 
@@ -102,14 +104,13 @@ Document which switch port is the **VyOS LAN trunk** and which ports serve **AV 
 | RAM | **32 GB DDR5** | Plan **64 GB+** for full service stack |
 | Router NIC | **10Gtek X550-T2 clone** (`ixgbe` / `ixgbevf`) | Dual RJ45 — **WAN** + **LAN** to VyOS |
 | CPU cooler | **Thermalright Peerless Assassin 120 SE** | 24/7 air cooling |
-| PSU | **Seasonic Focus GX-850** (ATX 3.1) | Host power — sufficient for **270K Plus** + **RTX 5060 Ti** (**180 W** TGP) |
-| GPU | **NVIDIA GeForce RTX 5060 Ti** (**16 GB** preferred) | **180 W** TGP — passthrough, transcode, or host workloads; **1× PCIe 8-pin** |
-| Case | **TBD** | Must fit **3× 3.5″ HDD**, **PA120 SE**, and **GPU** length/clearance |
+| PSU | **Seasonic Focus GX-850** (ATX 3.1) | Host power — sized for **270K Plus** + planned **RTX 5060 Ti** (see **§ Future shopping list**) |
+| Case | **TBD** | Must fit **3× 3.5″ HDD**, **PA120 SE**, and **GPU** length/clearance (**5060 Ti** on future list) |
 
 ### Platform notes
 
 - **270K Plus:** optional efficiency profile **PL1 = PL2 = 65 W** in BIOS for 24/7 use (restore stock **125 / 250 W** for heavy jobs).
-- **RTX 5060 Ti:** reference **180 W** TGP; host **850 W** PSU is adequate. Enable **Above 4G Decoding** / **Re-Size BAR** in BIOS for passthrough. **16 GB** SKU preferred over **8 GB** for VM/AI headroom.
+- **GPU (planned):** **RTX 5060 Ti** on **§ Future shopping list** — **850 W** PSU and **single 20 A** branch already sized for it.
 - **10Gtek X550 clone:** treat like Intel X550-T2; verify **`ixgbe`** + SR-IOV on your Proxmox kernel before adopting VF topology.
 - **Onboard 2.5G:** management only — not VyOS WAN/LAN.
 
@@ -134,7 +135,7 @@ Document which switch port is the **VyOS LAN trunk** and which ports serve **AV 
 | Item | Model | Role |
 |------|-------|------|
 | AV receiver | **Denon AVR-X3700H** | **Basement rack** — HDMI switching, **Audyssey**, pre-outs to Hypex |
-| Power amp | **Hypex NCx500** — **3-channel** | **Basement rack** — **L / C / R** → pre-run speaker homeruns to family room |
+| Power amp | **Hypex NCx500** — **3-channel** (**Buckeye Amps**) | **2U vented shelf** in rack — **14″ × 14″ × 3.5″** desktop case; **L / C / R** → family room |
 | Subwoofer | **HSU Research VTF-15H MK2** (powered) | **Family room** — **LFE** from basement Denon (pre-run); **local AC** |
 
 ## AV home theatre — speakers (in-wall / in-ceiling)
@@ -142,8 +143,8 @@ Document which switch port is the **VyOS LAN trunk** and which ports serve **AV 
 | Item | Model | Qty | Role |
 |------|-------|-----|------|
 | LCR | **Bowers & Wilkins CWM73 S2** | **3** | **Family room** — L / C / R (fed from basement **Hypex**) |
-| Surround | **Bowers & Wilkins CWM663** | **2** | **Family room** — surround pair (fed from basement **Denon** amps) |
-| Height / Atmos | **Bowers & Wilkins CCM662** | **2** | **Family room** — ceiling Atmos pair (fed from basement **Denon** amps) |
+| Surround | **Bowers & Wilkins CWM663** | **2** | **Family room** — surround pair (**now:** **Denon** amps · **future:** **NCx252MP** — see **§ Future shopping list**) |
+| Height / Atmos | **Bowers & Wilkins CCM662** | **2** | **Family room** — ceiling Atmos pair (**now:** **Denon** amps · **future:** **NCx252MP**) |
 
 **Layout (reference):** **3.2.2** bed + **Atmos** — **3× CWM73 S2** (LCR via Hypex) · **2× CWM663** (surround) · **2× CCM662** (Atmos) · **1× HSU VTF-15H MK2** (sub). Signal flow and Audyssey: **`av-theatre.md`**.
 
@@ -156,6 +157,31 @@ Document which switch port is the **VyOS LAN trunk** and which ports serve **AV 
 | Streamer | **Apple TV** | **Basement rack** → **HDMI** to Denon |
 
 Sources and **Denon** live in the **basement**; **HDMI** to **LG B7** and all **speaker** homeruns are pre-wired to the **family room**.
+
+**Rack U-by-U layout:** **`rack-layout.md`** (SR18UB diagram, mounting notes, cabling order).
+
+## Future shopping list
+
+Items **not purchased yet** — current rack, power, and AV docs are sized so these drop in without rework.
+
+| Item | Vendor / SKU | Target use | Planning notes |
+|------|----------------|------------|----------------|
+| **NVIDIA GeForce RTX 5060 Ti** | **16 GB** GDDR7 preferred | **Proxmox** host — passthrough, transcode, AI | **180 W** TGP · **1× PCIe 8-pin** · **GX-850** OK · **single 20 A** + **CST1500SUC** already sized · case must fit **GPU + PA120 SE** · BIOS: **Above 4G Decoding**, **Re-Size BAR**, **VT-d** |
+| **Hypex NCx252MP** — **4-channel** | **Buckeye Amps** (~**$995**) | **Surround L/R** + **Atmos L/R** off **Denon pre-outs** | **12″ × 13″ × 3.5″** · **2U vented shelf** at **U4–U5** · **Furman** outlet · ~**250 W**/ch class — modest **AV** load vs **NCx500** · **no** Buckeye rack case planned |
+
+### When **NCx252MP** arrives (target topology)
+
+| Channel | Speaker | Amp (today → future) |
+|---------|---------|----------------------|
+| L / C / R | **CWM73 S2** | **NCx500** (unchanged) |
+| Surround L / R | **CWM663** | Denon internal → **NCx252MP** ch 1–2 |
+| Height L / R | **CCM662** | Denon internal → **NCx252MP** ch 3–4 |
+
+**Denon:** set **Front L/R/C** = **Pre-out**; assign **Surround** + **Height** to **Pre-out** when amp installed (disable internal amp for those channels). **Re-run Audyssey** after change.
+
+**Rack / power / Furman:** second **2U** shelf below **NCx500**; one more **Furman** outlet; **20 A** branch still sufficient. **Pre-run speaker homeruns** unchanged — only rack-side terminations move from **Denon** binding posts to **NCx252MP**.
+
+See **`rack-layout.md`**, **`av-theatre.md` § Future amplification**, and **`proxmox.md` § GPU**.
 
 ## Open decisions
 
@@ -174,6 +200,6 @@ Pre-run wiring is **done**. Label and verify terminations at commission time.
 | **LAN** | Router NIC → **CBS350** | — | Trunk / access ports TBD |
 | **HDMI** | **Denon** main out | **LG B7** | Pre-run **HDMI** homerun; enable **eARC** on TV if needed |
 | **LCR speakers** | **NCx500** outputs | **3× CWM73 S2** | Pre-run speaker homeruns |
-| **Surround / Atmos** | **Denon** speaker terminals | **2× CWM663**, **2× CCM662** | Pre-run speaker homeruns |
+| **Surround / Atmos** | **Denon** *(now)* → **NCx252MP** *(future)* | **2× CWM663**, **2× CCM662** | Pre-run homeruns — rack termination changes when amp added |
 | **Sub LFE** | **Denon** sub out | **HSU VTF-15H MK2** | Pre-run **RCA/LFE**; sub **AC** local to family room |
 | **Ethernet** | **CBS350** | — (AV devices in basement) | PS5 / Apple TV / Switch → switch in rack |
