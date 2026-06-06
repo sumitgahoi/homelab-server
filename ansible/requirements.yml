@@ -1,8 +1,0 @@
----
-collections:
-  - name: community.general
-    version: ">=8.0.0"
-  - name: vyos.vyos
-    version: ">=4.0.0"
-  - name: ansible.netcommon
-    version: ">=5.0.0"

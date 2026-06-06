@@ -2,7 +2,6 @@
 *.swp
 *.tmp
 
-# Ansible
-ansible/collections/
-.vault_pass
-**/secrets.yml
+# Local secrets for scripts
+.env
+**/secrets.*
