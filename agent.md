@@ -1,93 +1,88 @@
-# Agent context — homelab and AV home theatre
+# Agent context
 
-Update this file when goals, stack choices, or doc layout change.
+**Ask first. Do not apply changes until the owner agrees.**
 
-## Purpose
+Repo edits, live gear (Proxmox, VyOS, CBS350, UniFi, ASUS, S33), and extras. Status dumps and Q&A are not permission to write.
 
-Document and automate:
+## IaC philosophy
 
-1. **Homelab** — a **Proxmox VE** host running **VyOS** (routing), **Pi-hole** (DNS), and **Tailscale** (remote access). Start small, grow into segmented VLANs without rewriting the north-star design.
-2. **AV home theatre** — receiver, amplification, in-wall speakers, display, and source devices — **`docs/equipment-inventory.md`** + **`docs/av-theatre.md`**.
+    Git = desired state + history
+    Ansible = a simple apply / disaster-recovery mechanism
+    Human = operator (admin, troubleshooting, activation, inspection, lifecycle)
 
-## Implementation phases
+This is **one Proxmox host**, not a fleet.
 
-| Phase | Scope |
-|-------|--------|
-| **Phase 1 (now)** | **VyOS only** — Proxmox **bridges + virtio** WAN/LAN, **flat LAN**, **DHCP**, client DNS = **Cloudflare** or **OpenDNS**. No Pi-hole, Tailscale, VLANs, or SR-IOV. |
-| **Later** | **`vmbr-svc`**, VLANs **10/20/30**, Pi-hole, Tailscale, **SR-IOV VFs**, IoT firewall — per service docs below. |
+Manual work with SSH, `qm`, VyOS CLI, `ifreload`, `ip`, `bridge`, the Proxmox UI, and BMC/KVM is expected. It is not configuration-management failure.
 
-## Hardware (summary)
+- Experimental / temporary change → manual is fine
+- Permanent desired-state change → eventually represent it in Git
+- Authoritative apply → Git wins
 
-**Authoritative list:** **`docs/equipment-inventory.md`**
+Do not automate something merely because it can be automated. A short documented manual command is better than Ansible machinery that adds little DR or safety value.
 
-| Category | Detail |
-|----------|--------|
-| **CPU** | Core Ultra 7 **270K Plus** — optional **PL1 = PL2 = 65 W** for 24/7 |
-| **Board** | Gigabyte **Z890** — onboard **2.5G** = Proxmox management only |
-| **RAM** | **32 GB DDR5** — plan **64 GB+** for full stack |
-| **Router NIC** | **10Gtek X550-T2 clone** — WAN + LAN to VyOS |
-| **Storage** | 960 EVO = OS · SN770 = VMs/LXCs · WD Red = bulk |
-| **ISP / WAN** | **Xfinity 2 Gbps** · **Arris S33** modem (**2.5G** → VyOS WAN) |
-| **Rack / LAN** | Eaton **SR18UB**, **Tripp Lite PDU**, Cisco **CBS350-24FP-4G** |
-| **Case** | **Open** — must fit **3× HDD** + **PA120 SE** |
-| **GPU** | **RTX 5060 Ti** (**16 GB**) — **planned**, not purchased — **`docs/equipment-inventory.md` § Future shopping list** |
-| **Basement power** | **1× 20 A** (**12 AWG**) duplex — **Furman** (socket A, AV) + **Tripp Lite PDU** (socket B, homelab) — **GPU does not require a second homerun** |
-| **UPS** | **CyberPower CST1500SUC** — homelab path only (**NUT** on Proxmox); AV on **Furman** |
-| **AV core** | **Denon AVR-X3700H** · **Buckeye Hypex NCx500** (3ch, **2U vented shelf**) · **HSU Research VTF-15H MK2** |
-| **AV speakers** | **3× B&W CWM73 S2** (LCR) · **2× CWM663** (surround) · **2× CCM662** (Atmos) |
-| **Display / sources** | **LG B7** + speakers/sub in **family room** · **Denon / Hypex / sources** in **basement rack** · wiring **done** |
+## Ansible simplicity
 
-**NVMe note:** map disks by serial/model in Proxmox — enumeration order can differ from physical slots.
+For every proposed Ansible task, variable, assertion, role, helper, template, abstraction, backup, verification step, or lifecycle feature, ask whether it materially contributes to:
 
-## Owner requirements (target design)
+1. expressing authoritative desired state,
+2. applying authoritative desired state,
+3. preventing a realistic catastrophic mistake, or
+4. disaster recovery.
 
-Long-term locked choices. **Phase 1** implements only the VyOS subset.
+If not, prefer not adding it.
 
-1. **Proxmox VE** on bare metal — VMs and LXCs for services.
-2. **Disk roles** — see **`docs/proxmox.md` § Disk layout**.
-3. **NIC policy** — Phase 1: bridges + virtio; target: **2× SR-IOV VF** (WAN + LAN trunk) + VyOS virtio on **`vmbr-svc`**. Onboard 2.5G = management only.
-4. **Single VyOS VM** — default gateway; not split across multiple VyOS guests.
-5. **Three VLANs (target)** — private **10**, guest **20**, iot **30**; subnets and IoT rules in **`docs/vyos.md`**.
-6. **Pi-hole** — LXC on **`vmbr-svc`**, upstream DoT in **`docs/pihole.md`**.
-7. **Tailscale** — subnet-router LXC on **`vmbr-svc`**, ACLs in **`docs/tailscale.md`**.
+Do not optimize for fleet patterns, maximum idempotency, maximum automation, abstraction for its own sake, generic reusable roles, exhaustive verification, duplicated policy assertions, or Ansible “best practices” that make this one-host repo harder to read.
 
-## Automation
+Prefer literal configuration, obvious playbooks, native tools, small amounts of glue, and readable recovery procedures.
 
-**Shell scripts** under **`scripts/`** — no Ansible. Scripts should be small, readable, and safe to re-run where possible (Proxmox API/CLI, SSH to VyOS, etc.).
+Do not create variables merely because a value might change. Do not create loops, dictionaries, or templates merely to eliminate a few literal lines.
 
-## Repository layout
+Understand the infrastructure by reading the configuration files, not Ansible internals.
 
-| Path | Role |
-|------|------|
-| `agent.md` | This file — context for humans and agents |
-| `docs/equipment-inventory.md` | Parts list, cabling, **future shopping list** |
-| `docs/rack-layout.md` | Eaton SR18UB U-by-U layout, mounting, cabling order |
-| `docs/av-theatre.md` | AV signal flow, pre-outs, Audyssey, HDMI |
-| `docs/proxmox.md` | Hypervisor, storage, bridges, SR-IOV |
-| `docs/vyos.md` | Router — Phase 1 + target VLANs and firewall |
-| `docs/pihole.md` | DNS filtering |
-| `docs/tailscale.md` | Remote access / subnet routes |
-| `scripts/` | Shell automation |
+Current Ansible contracts (do not expand without a concrete reason):
 
-## Open decisions
+- `homelab/ansible/proxmox/01-network.yml` — install Git’s interfaces file after a syntax check. Does not activate, verify, or recover networking. Operator: `ifreload -a` and inspect; BMC if stranded.
+- `homelab/ansible/proxmox/02-vyos-vm.yml` — **create-only**. If VM 100 exists, fail and touch nothing. No reconcile, repair, start/stop/destroy/rebuild. Prefer native `qm` over the Proxmox API.
+- `homelab/ansible/vyos/01-config.yml` — Architecture A: render `config.boot.j2`, authoritative replace, `commit-confirm` (2 minutes), test SSH to `10.10.10.1:22`, then confirm and save. Do not duplicate router policy as Ansible assertions.
 
-| Topic | Notes |
-|-------|--------|
-| **Case** | Reuse **Fractal Define C** or buy new — **3× 3.5″ HDD** constraint; see **`docs/equipment-inventory.md`**. |
+`.superpowers/` is session scratch, not documentation.
 
-## Resolved decisions
+## Before changing network infrastructure
 
-| Topic | Outcome |
-|-------|---------|
-| **VyOS topology** | Single VM — WAN VF, LAN trunk VF, `vmbr-svc` virtio |
-| **VLAN / IPv4 layout** | VLANs 10/20/30, `10.10.0.0/24` svc stub — **`docs/vyos.md`** |
-| **Pi-hole upstream** | DoT: Quad9 primary, Cloudflare secondary — **`docs/pihole.md`** |
-| **IoT firewall** | No internet; Pi-hole + NTP exceptions only — **`docs/vyos.md`** |
-| **Tailscale** | `tag:homelab-sr`, approve `10.10.0.0/24` + `10.10.10.0/24` — **`docs/tailscale.md`** |
-| **Automation** | Shell scripts, not Ansible |
-| **AV physical layout** | **Basement rack** = Denon, Hypex, Furman, sources; **family room** = TV, all speakers, HSU sub; structured wiring **complete** — **`docs/av-theatre.md`** |
-| **Basement rack power** | **1× 20 A** (**12 AWG**) — Furman **socket A** + PDU **socket B**; **5060 Ti** stays within single branch — **`docs/equipment-inventory.md` § Rack and power** |
-| **Homelab UPS** | **CyberPower CST1500SUC** (**1500 VA / 900 W**) — homelab path only, **NUT** on Proxmox — **`docs/equipment-inventory.md` § UPS** |
-| **Rack layout** | **SR18UB** — network + AV in rack (**~15U**); **Proxmox** floor; **UPS** on top; **Hypex** on **2U vented shelf** — **`docs/rack-layout.md`** |
-| **Hypex NCx500 mount** | **Buckeye** desktop case on **2U vented shelf** — no Buckeye rack case upgrade |
-| **Future AV amp** | **Buckeye NCx252MP 4ch** on **U4–U5** shelf — surround + Atmos off Denon pre-outs — **`docs/equipment-inventory.md` § Future shopping list** |
+Before changing Proxmox networking, VyOS, VM 100, VLANs, firewall, routing, DHCP, DNS, NAT, Tailscale, switch topology, or related infrastructure:
+
+1. Read this file.
+2. Read `homelab/REQUIREMENTS.md`.
+3. Read the relevant authoritative config (`homelab/ansible/proxmox/files/interfaces`, `homelab/vyos/config.boot.j2`, and/or the create-only VM playbook).
+4. Determine CURRENT vs PLANNED vs DEFERRED.
+5. Check whether the requested change conflicts with a requirement or invariant.
+6. If it conflicts, **stop** and tell the owner before implementing it.
+7. If the owner intentionally changes a requirement, update `REQUIREMENTS.md` in the same change.
+8. Keep implementation as simple as possible.
+9. Do not expand Ansible’s responsibilities without a concrete reason.
+
+A code/config change that alters network behavior without updating the corresponding requirement is incomplete.
+
+## Docs
+
+One fact, one file. Distinguish **CURRENT / as-built**, **Git desired state**, **PLANNED**, and **DEFERRED**. Do not mix them.
+
+| Fact | Authority |
+|------|-----------|
+| Required behavior and invariants | `homelab/REQUIREMENTS.md` |
+| Current topology / wiring | `homelab/README.md` |
+| Proxmox host interfaces | `homelab/ansible/proxmox/files/interfaces` |
+| Router configuration | `homelab/vyos/config.boot.j2` |
+| How to apply | `homelab/ansible/README.md` |
+| Physical catalog | `inventory.md` |
+| Guest list | `homelab/proxmox.md` |
+
+`config.boot.j2` is Git desired state. It has **not** yet been authoritatively applied and verified on the live router.
+
+## As-built (live)
+
+Proxmox + VyOS + CBS350. WAN is still house ASUS (double NAT). AdGuard, Tailscale, and India-GW are not deployed. Apply Git VyOS config from VLAN 10 when the owner asks.
+
+## Layout
+
+See `README.md`.

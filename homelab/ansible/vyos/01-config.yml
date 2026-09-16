@@ -1,0 +1,74 @@
+---
+# Replace VyOS running config from config.boot.j2 (Architecture A).
+# Requires vyos.vyos @ 762c276f61dd8fb599d9600df93c1a2992a8cf2e (PR 493).
+# --check --diff: load + compare, no commit.
+# Live: commit-confirm → SSH still answers → confirm → save.
+
+- name: Render authoritative VyOS config on the control node
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    vyos_config_j2: "{{ (playbook_dir ~ '/../../vyos/config.boot.j2') | realpath }}"
+    vyos_config_rendered: /tmp/homelab-vyos-config.boot
+    vyos_ssh_pub: "{{ (playbook_dir ~ '/../ssh/macbook.pub') | realpath }}"
+  tasks:
+    - name: Parse macbook.pub
+      ansible.builtin.set_fact:
+        vyos_ssh_key_type: "{{ ssh_fields[0] }}"
+        vyos_ssh_key_body: "{{ ssh_fields[1] }}"
+      vars:
+        ssh_fields: "{{ lookup('ansible.builtin.file', vyos_ssh_pub).split() }}"
+
+    - name: Render config.boot.j2
+      ansible.builtin.template:
+        src: "{{ vyos_config_j2 }}"
+        dest: "{{ vyos_config_rendered }}"
+        mode: "0600"
+      check_mode: false
+
+- name: Replace VyOS running configuration
+  hosts: vyos
+  gather_facts: false
+  vars:
+    vyos_config_rendered: /tmp/homelab-vyos-config.boot
+  tasks:
+    - name: Replace running configuration
+      vyos.vyos.vyos_config:
+        src: "{{ vyos_config_rendered }}"
+        replace: config
+        confirm: manual
+        confirm_timeout: 2
+        save: false
+      register: vyos_apply
+
+    - name: Confirm SSH to the router still answers
+      ansible.builtin.wait_for:
+        host: 10.10.10.1
+        port: 22
+        timeout: 30
+      delegate_to: localhost
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+      when:
+        - not ansible_check_mode
+        - vyos_apply.changed | default(false)
+
+    - name: Confirm commit-confirm
+      vyos.vyos.vyos_command:
+        commands:
+          - configure
+          - confirm
+          - exit
+      when:
+        - not ansible_check_mode
+        - vyos_apply.changed | default(false)
+
+    - name: Save running configuration
+      vyos.vyos.vyos_config:
+        save: true
+      when:
+        - not ansible_check_mode
+        - vyos_apply.changed | default(false)

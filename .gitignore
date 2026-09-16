@@ -1,7 +1,14 @@
 .DS_Store
+__MACOSX/
 *.swp
 *.tmp
+*.retry
 
-# Local secrets for scripts
 .env
+
+# Local Ansible secrets
+homelab/ansible/secrets.yml
 **/secrets.*
+
+# Superpowers session scratch
+.superpowers/

@@ -1,0 +1,41 @@
+auto lo
+iface lo inet loopback
+
+# Physical NICs — no IP (IPs live on bridges / vmbr0.10)
+auto nic0
+iface nic0 inet manual
+
+auto nic1
+iface nic1 inet manual
+
+# WAN bridge. Host has no address here.
+auto vmbr1
+iface vmbr1 inet manual
+    bridge-ports nic1
+    bridge-stp off
+    bridge-fd 0
+
+# LAN trunk: CBS350 GE1 → nic0. Tagged 10/20/30/40 pass through.
+# No host IP on the bridge itself (that would be untagged).
+auto vmbr0
+iface vmbr0 inet manual
+    bridge-ports nic0
+    bridge-stp off
+    bridge-fd 0
+    bridge-vlan-aware yes
+    bridge-vids 10 20 30 40
+
+# Host management. Dotted name is valid on a vlan-aware bridge.
+auto vmbr0.10
+iface vmbr0.10 inet static
+    address 10.10.10.3/24
+    gateway 10.10.10.1
+
+# Isolated services bridge. No physical NIC.
+auto vmbr-svc
+iface vmbr-svc inet manual
+    bridge-ports none
+    bridge-stp off
+    bridge-fd 0
+
+source /etc/network/interfaces.d/*

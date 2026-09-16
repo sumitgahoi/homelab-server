@@ -1,0 +1,13 @@
+---
+all:
+  hosts:
+    pve:
+      ansible_host: 10.10.10.3
+      ansible_user: root
+      ansible_connection: ssh
+      ansible_python_interpreter: auto_silent
+    vyos:
+      ansible_host: 10.10.10.1
+      ansible_user: vyos
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_network_os: vyos.vyos.vyos

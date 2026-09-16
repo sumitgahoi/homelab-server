@@ -1,0 +1,30 @@
+---
+# Install Git interfaces. Does not ifreload. Activate on Proxmox: ifreload -a
+
+- name: Install Proxmox /etc/network/interfaces
+  hosts: pve
+  gather_facts: false
+  tasks:
+    - name: List files in interfaces.d
+      ansible.builtin.find:
+        paths: /etc/network/interfaces.d
+        file_type: file
+      register: pve_interfaces_d
+      changed_when: false
+
+    - name: Fail if interfaces.d would compete with Git
+      ansible.builtin.assert:
+        that:
+          - pve_interfaces_d.files | length == 0
+        fail_msg: >-
+          /etc/network/interfaces.d has files; Git would not be authoritative.
+          Remove them, then re-run.
+
+    - name: Install /etc/network/interfaces
+      ansible.builtin.copy:
+        src: files/interfaces
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: "0644"
+        validate: /usr/sbin/ifreload --syntax-check --interfaces %s

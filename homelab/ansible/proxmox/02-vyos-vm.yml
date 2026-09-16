@@ -1,0 +1,63 @@
+---
+# Create VM 100 from Git. If it already exists, fail and do nothing.
+
+- name: Create VyOS VM 100
+  hosts: pve
+  gather_facts: false
+
+  tasks:
+    - name: Check whether VM 100 exists
+      ansible.builtin.stat:
+        path: /etc/pve/qemu-server/100.conf
+      register: vyos_vm
+
+    - name: Fail if VM 100 already exists
+      ansible.builtin.fail:
+        msg: >-
+          VM 100 already exists. This playbook is create-only and will not
+          modify an existing VM.
+      when: vyos_vm.stat.exists
+
+    - name: Fail if the VyOS qcow2 is missing
+      ansible.builtin.stat:
+        path: /var/lib/vz/import/vyos-proxmox-amd64.qcow2
+      register: vyos_qcow2
+      failed_when: not vyos_qcow2.stat.exists
+      changed_when: false
+
+    - name: Fail if vmdata is missing
+      ansible.builtin.command: pvesm status --storage vmdata
+      changed_when: false
+      check_mode: false
+
+    - name: Install Cloud-Init user-data snippet
+      ansible.builtin.copy:
+        content: "{{ lookup('ansible.builtin.template', playbook_dir ~ '/templates/cloud-init.yml.j2') }}"
+        dest: /var/lib/vz/snippets/vyos-100-user-data.yml
+        mode: "0644"
+
+    - name: Create VM 100
+      ansible.builtin.command: >-
+        qm create 100
+        --name vyos
+        --cores 2
+        --sockets 1
+        --memory 1536
+        --balloon 0
+        --cpu host
+        --ostype l26
+        --onboot 1
+        --agent 0
+        --serial0 socket
+        --net0 virtio,bridge=vmbr0,macaddr=02:00:00:00:00:00
+        --net1 virtio,bridge=vmbr1,macaddr=02:00:00:00:00:01
+        --net2 virtio,bridge=vmbr-svc,macaddr=02:00:00:00:00:02
+        --virtio0 vmdata:0,import-from=local:import/vyos-proxmox-amd64.qcow2
+        --ide2 vmdata:cloudinit
+        --citype nocloud
+        --cicustom user=local:snippets/vyos-100-user-data.yml
+        --boot order=virtio0
+      timeout: 600
+
+    - name: Start VM 100
+      ansible.builtin.command: qm start 100

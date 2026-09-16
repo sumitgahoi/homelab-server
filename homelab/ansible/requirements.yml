@@ -1,0 +1,5 @@
+---
+collections:
+  - name: https://github.com/ansible-collections/vyos.vyos.git
+    type: git
+    version: 762c276f61dd8fb599d9600df93c1a2992a8cf2e
