@@ -1,0 +1,111 @@
+! CBS350-24FP-4G — from factory or after reset.
+! Desired end state: running-config
+! Laptop on GE23, static 192.168.1.100/24, no gateway. Switch factory: 192.168.1.254
+! SSH is off until the ip ssh server line. Web UI is fine. One line at a time; pastes hang this CLI.
+! Apply is not save. After a chunk:  copy running-config startup-config
+! Do not add 10.10.10.2 until GE12 is untagged VLAN 10 and .254 still answers.
+
+enable
+configure terminal
+hostname cbs350
+macro auto disabled
+no ip routing
+
+vlan database
+vlan 10 name private
+vlan 20 name guest
+vlan 30 name iot
+vlan 40 name india
+exit
+
+interface vlan 1
+ip address 192.168.1.254 255.255.255.0
+no ip address dhcp
+exit
+
+end
+copy running-config startup-config
+
+configure terminal
+
+interface gi1
+description "Proxmox nic0 LAN trunk"
+switchport mode trunk
+switchport trunk native vlan 1
+switchport trunk allowed vlan 10,20,30,40
+exit
+
+interface gi2
+description "UniFi U6+ (not installed)"
+switchport mode trunk
+switchport trunk native vlan 1
+switchport trunk allowed vlan 10,20,30,40
+exit
+
+interface range gi3-12
+switchport mode access
+switchport access vlan 10
+exit
+
+interface gi3
+description BMC
+exit
+interface gi4
+description "spare trusted (NAS deferred)"
+exit
+interface gi5
+description PS5
+exit
+interface gi6
+description "Apple TV"
+exit
+interface gi7
+description "Switch 2"
+exit
+interface gi12
+description "admin OOB — do not repurpose"
+exit
+
+interface range gi13-22
+description IoT
+switchport mode access
+switchport access vlan 30
+exit
+
+! Leave gi23 on VLAN 1 until you move the laptop to GE12.
+interface gi24
+description India
+switchport mode access
+switchport access vlan 40
+exit
+
+interface range gi25-28
+shutdown
+exit
+
+end
+copy running-config startup-config
+
+! Confirm: ping 192.168.1.254 still works. Then add management on VLAN 10.
+
+configure terminal
+interface vlan 10
+ip address 10.10.10.2 255.255.255.0
+exit
+ip default-gateway 10.10.10.1
+ip ssh server
+end
+copy running-config startup-config
+
+! ping 192.168.1.254 again. If it dies, stop (hatch gone, no path to .2).
+! Move laptop to GE12: 10.10.10.99/24, no gateway. ping 10.10.10.2
+! Then put the factory hatch port onto India:
+
+configure terminal
+interface gi23
+description India
+switchport mode access
+switchport access vlan 40
+exit
+end
+copy running-config startup-config

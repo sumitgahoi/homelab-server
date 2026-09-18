@@ -1,16 +1,21 @@
+# Until cutover. Live on pve. Host mgmt is 192.168.50.200 on vmbr1 only.
+# No vmbr0.10 until VyOS is the router — then switch to `interfaces`.
+# Copy from this directory, then ifreload. Do not use the Network UI Apply button.
+
 auto lo
 iface lo inet loopback
 
-# Physical NICs — no IP (IPs live on bridges / vmbr0.10)
 auto nic0
 iface nic0 inet manual
 
 auto nic1
 iface nic1 inet manual
 
-# WAN bridge. Host has no address here.
+# ASUS LAN. Host mgmt until VyOS is the default router.
 auto vmbr1
-iface vmbr1 inet manual
+iface vmbr1 inet static
+    address 192.168.50.200/24
+    gateway 192.168.50.1
     bridge-ports nic1
     bridge-stp off
     bridge-fd 0
@@ -25,13 +30,6 @@ iface vmbr0 inet manual
     bridge-vlan-aware yes
     bridge-vids 10 20 30 40
 
-# Host management. Dotted name is valid on a vlan-aware bridge.
-auto vmbr0.10
-iface vmbr0.10 inet static
-    address 10.10.10.3/24
-    gateway 10.10.10.1
-
-# Isolated services bridge. No physical NIC.
 auto vmbr-svc
 iface vmbr-svc inet manual
     bridge-ports none

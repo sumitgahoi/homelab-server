@@ -1,13 +1,13 @@
 # Network requirements
 
-What the network must do, and why. Implementation lives in `ansible/proxmox/files/interfaces` and `vyos/config.boot.j2`. Topology lives in `README.md`.
+What the network must do, and why. Implementation lives in `proxmox/interfaces` (after cutover), `proxmox/interfaces.until-cutover`, `vyos/config.boot`, and `cbs350/running-config`. Topology lives in `README.md`.
 
-Git desired state is not automatically the live router. `config.boot.j2` has not yet been authoritatively applied and verified.
+Git desired state is not automatically the live router. `config.boot` has not yet been authoritatively applied and verified.
 
 ## Why this design
 
 - **One Proxmox host.** It is a hypervisor, not a router. It does not DHCP, NAT, or firewall client traffic.
-- **CBS350 tags and untags.** It does not route. There is no switch config in Git; the port map in `README.md` is last-known/as-built.
+- **CBS350 tags and untags.** It does not route. Git desired state is `cbs350/running-config` (manual apply: `cbs350/commands.txt`). The port-use table in `README.md` is as-built wiring.
 - **VyOS is the only router**, and the only DHCP, DNS, and NAT for the house LAN.
 - **One LAN trunk** carries client VLANs. WAN is a separate NIC/bridge. Services sit on an isolated bridge with no physical NIC.
 - **Numbering is locked:** 0 = LAN, 1 = WAN, 2 = services (`nic` / `vmbr` / `net` / MAC `02:00:00:00:00:0N` / `eth`). Do not delete/re-add VyOS guest NICs.
@@ -17,9 +17,9 @@ Git desired state is not automatically the live router. `config.boot.j2` has not
 ### Topology (required)
 
 - LAN trunk: `nic0` → `vmbr0` → VyOS `eth0`
-- WAN: `nic1` → `vmbr1` → VyOS `eth1` (host has no WAN IP)
+- WAN: `nic1` → `vmbr1` → VyOS `eth1`. Until cutover the host has `192.168.50.200/24` on `vmbr1` (ASUS LAN, **only** default gateway `192.168.50.1`). After cutover, remove that address; the host has no WAN IP.
 - Services: `vmbr-svc` → VyOS `eth2` = `10.10.0.1/24`
-- Proxmox management: `vmbr0.10` = `10.10.10.3/24`, gateway `10.10.10.1`
+- Proxmox management: until cutover, `192.168.50.200` on `vmbr1` only (no `vmbr0.10`). After cutover: `vmbr0.10` = `10.10.10.3/24`, gateway `10.10.10.1`. Do not put two `gateway` lines in `/etc/network/interfaces`.
 - VyOS management and Trusted gateway: `10.10.10.1`
 
 As-built WAN is still double NAT (S33 → house ASUS → `nic1`). That ASUS is not `asus-nuc`.
@@ -52,7 +52,7 @@ VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients
 
 **WAN** NATs Trusted and Guest only. Unsolicited inbound from WAN is denied (WAN DHCP client traffic excepted).
 
-**Management** of VyOS and Proxmox is from Trusted (VLAN 10), including OOB on the switch when VyOS is down. Guest, IoT, and India must not administer VyOS.
+**Management** of VyOS and Proxmox is from Trusted (VLAN 10) once `vmbr0.10` exists, including OOB on the switch when VyOS is down. Until then, Proxmox is reached at `192.168.50.200` on the ASUS LAN. Guest, IoT, and India must not administer VyOS.
 
 ## PLANNED
 
@@ -74,8 +74,8 @@ VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients
 
 - Proxmox must not become the house router
 - Locked 0/1/2 numbering and pinned VyOS MACs
-- Architecture A for VyOS (`config.boot.j2` is complete desired config; omitted nodes are removed on apply)
-- Create-only VM 100; Ansible does not own lifecycle after create
-- Tiny Proxmox network playbook (install file, do not `ifreload`)
+- Native `config.boot` in Git is the complete desired VyOS config; `load` removes omitted nodes
+- VM 100 is created and installed by hand; Git does not own guest lifecycle after that
+- VyOS installer ISO is downloaded on Proxmox to `local:iso/vyos.iso` when that file is missing
+- Git tracks Proxmox `interfaces`; operator copies the file and runs `ifreload`. Do not use the Network UI Apply button
 - India fail-closed (no US WAN fallback) once India-GW is implemented
-- One-host Ansible: do not grow it into fleet management

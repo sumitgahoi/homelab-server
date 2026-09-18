@@ -9,7 +9,7 @@ Catalog only. Design lives in the domain folder.
 | Thermalright PA120 SE · Seasonic GX-850 | host | — |
 | Arris S33 (DOCSIS 3.1, 2.5G) | rack U6–U7 | `homelab/README.md` |
 | House ASUS router | on S33 (retire at WAN cutover; not `asus-nuc`) | `homelab/README.md` |
-| Cisco CBS350-24FP-4G | rack U18 | `homelab/README.md` |
+| Cisco CBS350-24FP-4G | rack U18 | `homelab/cbs350/running-config`, `homelab/README.md` |
 | UniFi U6+ | not installed | `homelab/README.md` |
 | Eaton SR18UB | basement | `rack/` |
 | Eaton Tripp Lite PDU1215 | rack U1 rear | `rack/power.md` |
