@@ -2,7 +2,7 @@
 
 As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces`. Router Git state: `vyos/config.boot` (not yet authoritatively applied on the live router). Switch Git state: `cbs350/running-config` (manual apply).
 
-**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 → house ASUS → `nic1` / `vmbr1` (double NAT). Host `192.168.50.200/24` on `vmbr1` until VyOS is up. That ASUS is not `asus-nuc`.
+**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 → house ASUS → `nic1` / `vmbr1` (double NAT). Host `192.168.50.200/24` on `vmbr1` until cutover. UniFi OS Server + U6+ are live (`unifi.md`). That ASUS is not `asus-nuc`.
 
 **After VyOS `config.boot`:** drop the `vmbr1` address; host `10.10.10.3` on `vmbr0.10`, gateway `10.10.10.1`. Git: `proxmox/interfaces`.
 
@@ -17,16 +17,18 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
        │                 ├── .20 guest     10.10.20.1
        │                 ├── .30 iot       10.10.30.1
        │                 └── .40 india     10.10.40.1
-       └── Proxmox 10.10.10.3 on vmbr0.10   ← after VyOS
+       ├── GE2 ── UniFi U6+ (native 10, tagged 20/30/40)
+       └── Proxmox 10.10.10.3 on vmbr0.10   ← after cutover
 
-  vmbr1 ── Proxmox 192.168.50.200           ← until VyOS
+  vmbr1 ── Proxmox 192.168.50.200           ← until cutover
   vmbr-svc (no NIC) ── VyOS eth2  10.10.0.1
+                   └── UniFi OS  10.10.0.2
 ```
 
 | Index | NIC | Bridge | VM slot | MAC | VyOS | Role |
 |-------|-----|--------|---------|-----|------|------|
 | 0 | `nic0` | `vmbr0` | `net0` | `02:00:00:00:00:00` | `eth0` | LAN trunk → CBS350 GE1 |
-| 1 | `nic1` | `vmbr1` | `net1` | `02:00:00:00:00:01` | `eth1` | WAN (host `192.168.50.200` until VyOS; then no host IP) |
+| 1 | `nic1` | `vmbr1` | `net1` | `02:00:00:00:00:01` | `eth1` | WAN (host `192.168.50.200` until cutover; then no host IP) |
 | 2 | — | `vmbr-svc` | `net2` | `02:00:00:00:00:02` | `eth2` | Services `10.10.0.1/24` |
 
 MACs are set when you create the VM. Do not delete/re-add guest NICs. BMC = onboard Realtek 1G (AST2600), not OS networking.
@@ -41,11 +43,11 @@ MACs are set when you create the VM. Do not delete/re-add guest NICs. BMC = onbo
 | India | 40 | `10.10.40.0/24` | `10.10.40.1` |
 | Services | — | `10.10.0.0/24` | `10.10.0.1` |
 
-Trunks allow 10/20/30/40. DHCP `.100`–`.250` on the four client VLANs. Policy: `REQUIREMENTS.md`.
+Trunks allow 10/20/30/40. DHCP `.100`–`.250` on the four client VLANs. Policy: `REQUIREMENTS.md`. Wi-Fi: `unifi.md`.
 
 ## Addresses
 
-Until VyOS: Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN).
+Until cutover: Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN).
 
 VLAN 10 (after VyOS `config.boot` and Git `proxmox/interfaces`):
 
@@ -57,7 +59,14 @@ VLAN 10 (after VyOS `config.boot` and Git `proxmox/interfaces`):
 | `10.10.10.99` | admin laptop OOB |
 | `10.10.10.100`–`.250` | DHCP |
 
-Planned Services addresses (not live): `adguard.md`, `tailscale.md`.
+Services (`vmbr-svc`, not a VLAN):
+
+| Address | Device |
+|---------|--------|
+| `10.10.0.1` | VyOS `eth2` |
+| `10.10.0.2` | UniFi OS Server (LXC 107) |
+
+Planned Services addresses: `adguard.md`, `tailscale.md`.
 
 ## CBS350
 
@@ -80,14 +89,14 @@ Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fal
 | 23–24 | access | 40 | India |
 | SFP 1–4 | shutdown | — | unused |
 
-Guest has no wired port (wireless-only once an AP exists). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is applied.
+Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is applied.
 
 ## Recovery
 
 | Tier | When | Path |
 |------|------|------|
-| 1 | until VyOS | `https://192.168.50.200:8006` |
-| 1 | after VyOS | `https://10.10.10.3:8006` |
+| 1 | until cutover | `https://192.168.50.200:8006` |
+| 1 | after cutover | `https://10.10.10.3:8006` |
 | 2 | VyOS down | CBS350 port 12, static `10.10.10.99/24`, no GW |
 | 2b | switch dead | laptop ↔ `nic0`, VLAN 10 |
 | 3 / BMC | no network / OS dead | iKVM |

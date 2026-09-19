@@ -8,4 +8,4 @@ VyOS remains the DHCP server. AdGuard is DNS only. Later, DHCP option 6 may poin
 
 Upstream DoT: Quad9 `tls://dns.quad9.net`, Cloudflare `tls://one.one.one.one`. Bootstrap `9.9.9.9` / `1.1.1.1`. Not ISP DNS. UI `:3000` from Trusted only.
 
-Skip until after WAN cutover. Services NAT/hairpin only if this guest actually needs Internet/hairpin — see `REQUIREMENTS.md`.
+Skip until after WAN cutover. Services already NATs to WAN. Hairpin only if this guest actually needs it — see `REQUIREMENTS.md`.

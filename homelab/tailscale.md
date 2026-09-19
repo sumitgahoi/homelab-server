@@ -16,4 +16,4 @@ Advertise from `tailscale-us` only: `10.10.0.0/24`, `10.10.10.0/24`. Not guest/i
 
 Gateway for both LXCs: `10.10.0.1`. Do not reuse `.53` (AdGuard).
 
-Not the same sitting as the S33 swap. Unlock the India SSID only after India-GW exists and VLAN 40 IPv4/IPv6 fail closed off the US WAN. Invariants: `REQUIREMENTS.md`.
+Not the same sitting as the S33 swap. The India SSID is live (`unifi.md`); India-GW is not. VLAN 40 still has no normal WAN egress and must fail closed off the US WAN once India-GW exists. Invariants: `REQUIREMENTS.md`.

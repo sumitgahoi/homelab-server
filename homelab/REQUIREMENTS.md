@@ -36,7 +36,7 @@ IPv6 is not part of the current routing design. Do not treat that as a permanent
 | India | 40 | `10.10.40.0/24` | `10.10.40.1` |
 | Services | — | `10.10.0.0/24` | `10.10.0.1` |
 
-VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients is the VLAN gateway. Upstream DNS is Cloudflare (`1.1.1.1` / `1.0.0.1`) via the US WAN. NAT to WAN (`eth1`) is Trusted and Guest only.
+VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients is the VLAN gateway. Upstream DNS is Cloudflare (`1.1.1.1` / `1.0.0.1`) via the US WAN. NAT to WAN (`eth1`) is Trusted, Guest, and Services.
 
 ### Behavior
 
@@ -48,20 +48,21 @@ VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients
 
 **India** must not use the normal WAN. It must not reach other internal networks or VyOS management. DHCP/DNS to its gateway is allowed. DNS recursion via VyOS/Cloudflare on the US WAN is an acceptable temporary implementation because India has no general Internet forwarding. This is not the long-term DNS design.
 
-**Services** has no general Internet access and must not initiate connections into client VLANs. Trusted may initiate into Services; established return traffic is allowed. Services guests (AdGuard/Tailscale) are not deployed.
+**Services** may use the Internet. Services must not initiate connections into Trusted, Guest, IoT, or India. Trusted may initiate into Services; established/related return traffic is allowed. Forward default-drop is the isolation; do not add explicit Services→internal drop rules. UniFi OS Server is on Services (`10.10.0.2`). AdGuard and Tailscale are not deployed.
 
-**WAN** NATs Trusted and Guest only. Unsolicited inbound from WAN is denied (WAN DHCP client traffic excepted).
+**WAN** NATs Trusted, Guest, and Services. Unsolicited inbound from WAN is denied (WAN DHCP client traffic excepted).
+
+**UniFi** is Wi-Fi only (controller on Services, AP on CBS350 GE2). VyOS remains the router, DHCP server, DNS forwarder, NAT device, and firewall. UniFi must not provide those functions. Services is not a UniFi network. One SSID per client VLAN (names are not locked): Trusted→VLAN 10, Guest→VLAN 20, IoT→VLAN 30, India→VLAN 40. Isolation remains VyOS, not AP-only. As-built: `unifi.md`.
 
 **Management** of VyOS and Proxmox is from Trusted (VLAN 10) once `vmbr0.10` exists, including OOB on the switch when VyOS is down. Until then, Proxmox is reached at `192.168.50.200` on the ASUS LAN. Guest, IoT, and India must not administer VyOS.
 
 ## PLANNED
 
 - S33 2.5G directly on `nic1`; retire the house ASUS. Isolation policy does not change.
-- UniFi AP: one SSID per client VLAN. Exact SSID names are not locked. Required mapping: Trusted→VLAN 10, Guest→VLAN 20, IoT→VLAN 30, India→VLAN 40. Isolation remains VyOS, not AP-only.
 - AdGuard on Services (`10.10.0.53`): DNS only. VyOS stays the DHCP server. DHCP option 6 may later point appropriate clients at AdGuard. See `adguard.md`.
 - Tailscale: not on VyOS. `tailscale-us` (`10.10.0.52`) = subnet router + US exit. `tailscale-india` (`10.10.0.54`) = India-GW via `asus-nuc`. See `tailscale.md`.
 - When India-GW exists, VLAN 40 IPv4 and IPv6 have **exactly one** permitted Internet egress: India-GW. Neither family may fall back to the normal VyOS WAN. If that path is down, fail closed. DNS must follow the India path and must not leak via the US WAN.
-- Services Internet NAT / hairpin only if a future service needs it. Do not add a generic Services↔Trusted mesh. Trusted→Services stays the baseline; add narrowly scoped Services-originated exceptions when a real service requires them.
+- Do not add a generic Services↔Trusted mesh. Trusted→Services stays the baseline; add narrowly scoped Services-originated exceptions when a real service requires them. Hairpin NAT only if a future service needs it.
 
 ## DEFERRED
 

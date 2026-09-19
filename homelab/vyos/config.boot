@@ -114,6 +114,18 @@ service {
 }
 nat {
     source {
+        rule 30 {
+            description "Services to WAN"
+            outbound-interface {
+                name eth1
+            }
+            source {
+                address 10.10.0.0/24
+            }
+            translation {
+                address masquerade
+            }
+        }
         rule 100 {
             description "NAT trusted to WAN"
             outbound-interface {
@@ -147,6 +159,9 @@ firewall {
         }
         network-group NET-GUEST {
             network 10.10.20.0/24
+        }
+        network-group NET-SERVICES {
+            network 10.10.0.0/24
         }
         network-group NET-CLIENT {
             network 10.10.10.0/24
@@ -254,6 +269,18 @@ firewall {
                     source {
                         group {
                             network-group NET-GUEST
+                        }
+                    }
+                    outbound-interface {
+                        name eth1
+                    }
+                }
+                rule 300 {
+                    action accept
+                    description "Services to WAN"
+                    source {
+                        group {
+                            network-group NET-SERVICES
                         }
                     }
                     outbound-interface {

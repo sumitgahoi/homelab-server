@@ -55,6 +55,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **Git desired state**, *
 | Router configuration | `homelab/vyos/config.boot` |
 | Switch configuration | `homelab/cbs350/running-config` |
 | How to apply | `homelab/proxmox/README.md` (host interfaces); `homelab/vyos/README.md` (VyOS); `homelab/cbs350/README.md` (switch); `homelab/ssh/README.md` (operator key) |
+| UniFi as-built | `homelab/unifi.md` |
 | Physical catalog | `inventory.md` |
 | Guest list | `homelab/proxmox.md` |
 
@@ -62,7 +63,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **Git desired state**, *
 
 ## As-built (live)
 
-Proxmox mgmt is `192.168.50.200` on `vmbr1` (ASUS LAN) until VyOS is up. Then apply Git `proxmox/interfaces` (`vmbr0.10` = `10.10.10.3`). WAN is still house ASUS (double NAT). AdGuard, Tailscale, and India-GW are not deployed. Git `config.boot` has not yet been authoritatively applied.
+Proxmox mgmt is `192.168.50.200` on `vmbr1` (ASUS LAN) until cutover. Then apply Git `proxmox/interfaces` (`vmbr0.10` = `10.10.10.3`). WAN is still house ASUS (double NAT). UniFi OS Server and U6+ are live. AdGuard, Tailscale, and India-GW are not deployed. Git `config.boot` has not yet been authoritatively applied.
 
 ## Layout
 

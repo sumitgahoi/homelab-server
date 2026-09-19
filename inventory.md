@@ -10,7 +10,7 @@ Catalog only. Design lives in the domain folder.
 | Arris S33 (DOCSIS 3.1, 2.5G) | rack U6–U7 | `homelab/README.md` |
 | House ASUS router | on S33 (retire at WAN cutover; not `asus-nuc`) | `homelab/README.md` |
 | Cisco CBS350-24FP-4G | rack U18 | `homelab/cbs350/running-config`, `homelab/README.md` |
-| UniFi U6+ | not installed | `homelab/README.md` |
+| UniFi U6+ | CBS350 GE2 | `homelab/unifi.md` |
 | Eaton SR18UB | basement | `rack/` |
 | Eaton Tripp Lite PDU1215 | rack U1 rear | `rack/power.md` |
 | CyberPower CST1500SUC | rolling platform | `rack/power.md` |
@@ -32,7 +32,6 @@ Pre-run HDMI, speaker, LFE, and network between basement and family room: **done
 | RTX 5060 Ti 16 GB | Host GPU. Upgrade basement breaker to 20 A first — `rack/power.md` |
 | Buckeye NCx252MP 4ch | Surround + Atmos off Denon pre-outs. Shelf reserved U4–U5 |
 | Rack shelves / cable manager | 4U Denon (≥16–18″ deep) · 2U Hypex · 3U consoles · 2U S33 · 1U brush |
-| UniFi U6+ | CBS350 GE2 |
 
 ## Open
 

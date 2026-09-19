@@ -44,6 +44,7 @@ Expect forward:
 - established/related → accept
 - Trusted → accept
 - Guest → eth1 → accept
+- Services → eth1 → accept
 - default → drop
 
 Then continue with client tests...

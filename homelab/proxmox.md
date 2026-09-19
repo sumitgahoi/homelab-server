@@ -19,11 +19,12 @@ Optional BIOS: PL1 = PL2 = 65 W for 24/7. Apt: pve-no-subscription.
 | Guest | Type | vCPU | RAM | NIC | IP |
 |-------|------|------|-----|-----|-----|
 | vyos | VM 100 | 2 | 4096 MiB | `vmbr0` + `vmbr1` + `vmbr-svc` | `10.10.10.1` |
+| unifi-os-server | LXC 107 | 2 | 4096 MiB | `vmbr-svc` | `10.10.0.2` |
 | adguard | LXC | 1 | 512 MiB | `vmbr-svc` | `10.10.0.53` (PLANNED) |
 | tailscale-us | LXC | 1 | 512 MiB | `vmbr-svc` | `10.10.0.52` (PLANNED) |
 | tailscale-india | LXC | 1 | 512 MiB | `vmbr-svc` | `10.10.0.54` (PLANNED) |
 
-Create VM 100: `vyos/install.md`. Locked NICs/MACs: `README.md`. Policy: `vyos/config.boot`. Apply: `vyos/README.md`.
+Create VM 100: `vyos/install.md`. Locked NICs/MACs: `README.md`. Policy: `vyos/config.boot`. Apply: `vyos/README.md`. UniFi OS Server: `unifi.md`.
 
 ## VyOS down
 

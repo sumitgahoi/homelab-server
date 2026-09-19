@@ -20,9 +20,10 @@ One fact, one file. Label **CURRENT / as-built**, **Git desired state**, **PLANN
 | `homelab/ssh/` | Operator key and sshd drop-in; copy steps in `homelab/ssh/README.md` |
 | `homelab/cbs350/running-config` | Authoritative switch config (Git desired state) |
 | `homelab/cbs350/README.md` | How to copy `running-config` onto the switch |
+| `homelab/unifi.md` | UniFi OS Server and U6+ (as-built) |
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 
-**As-built:** Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN) until VyOS is up; then `10.10.10.3` on `vmbr0.10`. WAN is still the house ASUS (double NAT). AdGuard and Tailscale are not deployed. Git VyOS config has not yet been authoritatively applied.
+**As-built:** Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN) until cutover to `10.10.10.3` on `vmbr0.10`. WAN is still the house ASUS (double NAT). UniFi OS Server and U6+ are live (`homelab/unifi.md`). AdGuard and Tailscale are not deployed. Git VyOS config has not yet been authoritatively applied.
 
 Apply host interfaces from `homelab/proxmox/README.md`. Apply VyOS from `homelab/vyos/README.md`. Operator SSH key: `homelab/ssh/README.md`.
