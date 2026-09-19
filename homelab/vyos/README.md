@@ -25,4 +25,4 @@ save
 
 `load` replaces the candidate configuration with this file. Nodes omitted from `config.boot` are removed on commit.
 
-This house router is `vyos@10.10.10.1`. Fresh VM 100: `install.md`.
+From the MacBook on CBS350 GE12 (`10.10.10.99/24`, no gateway) this house router is `vyos@10.10.10.1`. Fresh VM 100: `install.md`.

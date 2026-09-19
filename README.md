@@ -19,6 +19,7 @@ One fact, one file. Label **CURRENT / as-built**, **Git desired state**, **PLANN
 | `homelab/vyos/README.md` | How to copy and apply `config.boot` |
 | `homelab/ssh/` | Operator key and sshd drop-in; copy steps in `homelab/ssh/README.md` |
 | `homelab/cbs350/running-config` | Authoritative switch config (Git desired state) |
+| `homelab/cbs350/README.md` | How to copy `running-config` onto the switch |
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 

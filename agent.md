@@ -54,7 +54,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **Git desired state**, *
 | Proxmox host interfaces | `homelab/proxmox/interfaces` |
 | Router configuration | `homelab/vyos/config.boot` |
 | Switch configuration | `homelab/cbs350/running-config` |
-| How to apply | `homelab/proxmox/README.md` (host interfaces); `homelab/vyos/README.md` (VyOS); `homelab/cbs350/commands.txt` (switch); `homelab/ssh/README.md` (operator key) |
+| How to apply | `homelab/proxmox/README.md` (host interfaces); `homelab/vyos/README.md` (VyOS); `homelab/cbs350/README.md` (switch); `homelab/ssh/README.md` (operator key) |
 | Physical catalog | `inventory.md` |
 | Guest list | `homelab/proxmox.md` |
 

@@ -61,14 +61,14 @@ Planned Services addresses (not live): `adguard.md`, `tailscale.md`.
 
 ## CBS350
 
-Git desired state: `cbs350/running-config`. From factory: `cbs350/commands.txt`. Apply ≠ save: `copy running-config startup-config`.
+Git desired state: `cbs350/running-config`. Apply from factory: `cbs350/README.md`. Save after the file is on running-config.
 
 Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fall to VLAN 1. Live gear may still have leftover VLAN 99 (deferred strip).
 
 | Port | Mode | VLAN | Use |
 |------|------|------|-----|
-| 1 | trunk | 10,20,30,40 | Proxmox `nic0` |
-| 2 | trunk, PoE | 10,20,30,40 | UniFi U6+ (not installed) |
+| 1 | trunk | native 1, tagged 10/20/30/40 | Proxmox `nic0` |
+| 2 | trunk, PoE | native 10, tagged 20/30/40 | UniFi U6+ |
 | 3 | access | 10 | BMC |
 | 4 | access | 10 | spare (NAS is deferred) |
 | 5 | access | 10 | PS5 |
@@ -80,7 +80,7 @@ Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fal
 | 23–24 | access | 40 | India |
 | SFP 1–4 | shutdown | — | unused |
 
-Guest has no wired port (wireless-only once an AP exists). Port 12 is recovery when VyOS is down. VLAN 1 hatch `192.168.1.254` is still present until dropped on purpose (deferred).
+Guest has no wired port (wireless-only once an AP exists). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is applied.
 
 ## Recovery
 

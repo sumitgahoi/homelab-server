@@ -30,7 +30,7 @@ Create VM 100: `vyos/install.md`. Locked NICs/MACs: `README.md`. Policy: `vyos/c
 Mgmt does not hairpin through the router. DHCP will be dead.
 
 1. CBS350 port 12 (or any VLAN 10 access). Static `10.10.10.99/24`, no gateway.
-2. `ping 192.168.50.200` (until VyOS) or `ping 10.10.10.3` (after) → UI or SSH.
+2. After cutover: `ping 10.10.10.3` → UI or SSH. Until cutover, GE12 does not reach `192.168.50.200` (that is ASUS/`vmbr1`); use that LAN or BMC.
 3. `qm start 100`.
 
 Switch dead: laptop on `nic0` tagged 10, or BMC. OS dead: BMC iKVM.

@@ -1,85 +1,128 @@
-! CBS350-24FP-4G Git desired state (L2 + management).
-! Equivalent of VyOS config.boot: `show running-config` / `show startup-config`.
-! This file is not a verbatim live dump: no firmware header, SSD block, or passwords.
-! Incremental CLI does not delete omitted nodes. Apply from factory: commands.txt
-! Live dump (operator): show running-config   then copy running-config startup-config
-! Do not put enable/user hashes in Git.
-
-hostname cbs350
-macro auto disabled
-no ip routing
-
+config-file-header
+cbs350
+v3.5.0.26 / RCBSMR_950_377_375
+CLI v1.0
+file SSD indicator excluded
+@
+!
+unit-type-control-start 
+unit-type unit 1 network gi uplink none 
+unit-type-control-end 
+!
 vlan database
-vlan 10 name private
-vlan 20 name guest
-vlan 30 name iot
-vlan 40 name india
+vlan 10,20,30,40 
 exit
-
-! Pin the factory hatch as a real static before adding 10.10.10.2 (otherwise .254 vanishes).
-interface vlan 1
- ip address 192.168.1.254 255.255.255.0
- no ip address dhcp
-exit
-
-interface vlan 10
- ip address 10.10.10.2 255.255.255.0
-exit
-
-ip default-gateway 10.10.10.1
+voice vlan oui-table add 0001e3 Siemens_AG_phone
+voice vlan oui-table add 00036b Cisco_phone
+voice vlan oui-table add 00096e Avaya
+voice vlan oui-table add 000fe2 H3C_Aolynk
+voice vlan oui-table add 0060b9 Philips_and_NEC_AG_phone
+voice vlan oui-table add 00d01e Pingtel_phone
+voice vlan oui-table add 00e075 Polycom/Veritel_phone
+voice vlan oui-table add 00e0bb 3Com_phone
+bonjour interface range vlan 1
+hostname cbs350
 ip ssh server
-
-interface gi1
+!
+interface vlan 10
+ name private 
+ ip address 10.10.10.2 255.255.255.0 
+!
+interface vlan 20
+ name guest 
+!
+interface vlan 30
+ name iot 
+!
+interface vlan 40
+ name india 
+!
+interface GigabitEthernet1
  description "Proxmox nic0 LAN trunk"
- switchport mode trunk
- switchport trunk native vlan 1
- switchport trunk allowed vlan 10,20,30,40
-exit
-
-interface gi2
- description "UniFi U6+ (not installed)"
- switchport mode trunk
- switchport trunk native vlan 1
- switchport trunk allowed vlan 10,20,30,40
-exit
-
-interface range gi3-12
- switchport mode access
- switchport access vlan 10
-exit
-
-interface gi3
- description BMC
-exit
-interface gi4
- description "spare trusted (NAS deferred)"
-exit
-interface gi5
- description PS5
-exit
-interface gi6
- description "Apple TV"
-exit
-interface gi7
- description "Switch 2"
-exit
-interface gi12
- description "admin OOB — do not repurpose"
-exit
-
-interface range gi13-22
- description IoT
- switchport mode access
- switchport access vlan 30
-exit
-
-interface range gi23-24
- description India
- switchport mode access
- switchport access vlan 40
-exit
-
-! SFP cages. Names were gi25-28 on this chassis; confirm with show interfaces status.
-interface range gi25-28
+ switchport mode trunk 
+!
+interface GigabitEthernet2
+ description "UniFi U6+"
+ switchport mode trunk 
+ switchport trunk native vlan 10 
+!
+interface GigabitEthernet3
+ switchport access vlan 10 
+!
+interface GigabitEthernet4
+ switchport access vlan 10 
+!
+interface GigabitEthernet5
+ switchport access vlan 10 
+!
+interface GigabitEthernet6
+ switchport access vlan 10 
+!
+interface GigabitEthernet7
+ switchport access vlan 10 
+!
+interface GigabitEthernet8
+ switchport access vlan 10 
+!
+interface GigabitEthernet9
+ switchport access vlan 10 
+!
+interface GigabitEthernet10
+ switchport access vlan 10 
+!
+interface GigabitEthernet11
+ switchport access vlan 10 
+!
+interface GigabitEthernet12
+ description "admin OOB - do not repurpose"
+ switchport access vlan 10 
+!
+interface GigabitEthernet13
+ switchport access vlan 30 
+!
+interface GigabitEthernet14
+ switchport access vlan 30 
+!
+interface GigabitEthernet15
+ switchport access vlan 30 
+!
+interface GigabitEthernet16
+ switchport access vlan 30 
+!
+interface GigabitEthernet17
+ switchport access vlan 30 
+!
+interface GigabitEthernet18
+ switchport access vlan 30 
+!
+interface GigabitEthernet19
+ switchport access vlan 30 
+!
+interface GigabitEthernet20
+ switchport access vlan 30 
+!
+interface GigabitEthernet21
+ switchport access vlan 30 
+!
+interface GigabitEthernet22
+ switchport access vlan 30 
+!
+interface GigabitEthernet23
+ switchport access vlan 40 
+!
+interface GigabitEthernet24
+ switchport access vlan 40 
+!
+interface GigabitEthernet25
  shutdown
+!
+interface GigabitEthernet26
+ shutdown
+!
+interface GigabitEthernet27
+ shutdown
+!
+interface GigabitEthernet28
+ shutdown
+!
 exit

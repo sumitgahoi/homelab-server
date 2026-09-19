@@ -7,7 +7,7 @@ Git desired state is not automatically the live router. `config.boot` has not ye
 ## Why this design
 
 - **One Proxmox host.** It is a hypervisor, not a router. It does not DHCP, NAT, or firewall client traffic.
-- **CBS350 tags and untags.** It does not route. Git desired state is `cbs350/running-config` (manual apply: `cbs350/commands.txt`). The port-use table in `README.md` is as-built wiring.
+- **CBS350 tags and untags.** It does not route. Git desired state is `cbs350/running-config` (apply: `cbs350/README.md`). The port-use table in `README.md` is as-built wiring. Cisco merge does not delete omitted nodes; apply from factory.
 - **VyOS is the only router**, and the only DHCP, DNS, and NAT for the house LAN.
 - **One LAN trunk** carries client VLANs. WAN is a separate NIC/bridge. Services sit on an isolated bridge with no physical NIC.
 - **Numbering is locked:** 0 = LAN, 1 = WAN, 2 = services (`nic` / `vmbr` / `net` / MAC `02:00:00:00:00:0N` / `eth`). Do not delete/re-add VyOS guest NICs.
@@ -67,7 +67,6 @@ VyOS DHCP on all four client VLANs, pools `.100`–`.250`. DNS for those clients
 
 - Camera VLAN
 - NAS `10.10.10.4`
-- Dropping the VLAN 1 hatch (`192.168.1.254`)
 - Stripping leftover VLAN 99 on live gear, if any remain
 
 ## Do not casually reopen

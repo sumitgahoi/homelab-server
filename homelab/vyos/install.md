@@ -127,7 +127,7 @@ qm start 100
 
 ## Mac
 
-Static `10.10.10.99/24` on VLAN 10 if needed. Pin the new host key:
+Plug into CBS350 **GE12**. Static `10.10.10.99/24`, no gateway. Pin the new host key:
 
 ```bash
 ssh-keygen -R 10.10.10.1
