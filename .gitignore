@@ -6,9 +6,5 @@ __MACOSX/
 
 .env
 
-# Local Ansible secrets
-homelab/ansible/secrets.yml
+# Local secrets if any appear
 **/secrets.*
-
-# Superpowers session scratch
-.superpowers/

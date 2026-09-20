@@ -1,6 +1,10 @@
 # Host interfaces
 
-Git tracks `interfaces` (after VyOS is the router) and `interfaces.until-cutover`. Copy from this directory on the MacBook. Do not use the Proxmox Network UI Apply button.
+These files are **known-good snapshots** of `/etc/network/interfaces` on the Proxmox host.
+
+A human copies the matching file and runs `ifreload`. That is intentional. Do not wrap this in Ansible or a deploy script. Do not use the Proxmox Network UI Apply button.
+
+Git tracks `interfaces` (after VyOS is the router) and `interfaces.until-cutover`. Copy from this directory on the MacBook.
 
 Until cutover:
 

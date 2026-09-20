@@ -1,6 +1,6 @@
 # Verify VyOS
 
-Run after a fresh install or significant config change.
+Run after a fresh install or significant config change. Rebuild procedure: `setup.md`. Known-good CLI: `commands.txt`.
 
 ## 1. Interfaces
 
@@ -32,9 +32,10 @@ Expect an answer.
 show ip route
 
 Expect:
-- default route via eth1
+- default route via eth1 (main table; Trusted/Guest/Services)
 - connected routes for all four VLANs
 - connected route for Services
+- table 40 default via 10.10.0.5 (plus higher-distance blackhole)
 
 ## 5. Firewall
 
@@ -45,6 +46,10 @@ Expect forward:
 - Trusted → accept
 - Guest → eth1 → accept
 - Services → eth1 → accept
+- India dest RFC1918 → drop
+- India → eth2 → accept
 - default → drop
 
-Then continue with client tests...
+India must not appear in source NAT out eth1. DNS forwarding must not listen on 10.10.40.1.
+
+India path tests: `../tailscale-india/setup.md`. India-GW (CT 108) is part of the known-good path.

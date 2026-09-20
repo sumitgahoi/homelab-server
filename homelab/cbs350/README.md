@@ -3,6 +3,9 @@
 `running-config` is the known-good CBS350 running configuration exported from
 the switch.
 
+This directory is a restore runbook plus that snapshot. A human uses the CBS350
+web UI. Do not wrap the restore in Ansible or a deploy script.
+
 It is kept as close as possible to the switch-generated backup. The only line
 removed before committing is:
 

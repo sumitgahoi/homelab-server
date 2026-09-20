@@ -1,10 +1,10 @@
 # Homelab topology
 
-As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces`. Router Git state: `vyos/config.boot` (not yet authoritatively applied on the live router). Switch Git state: `cbs350/running-config` (manual apply).
+As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces` / `proxmox/interfaces.until-cutover`. Router known-good: `vyos/commands.txt` (rebuild: `vyos/setup.md`). Switch known-good: `cbs350/running-config` (restore: `cbs350/README.md`).
 
-**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 → house ASUS → `nic1` / `vmbr1` (double NAT). Host `192.168.50.200/24` on `vmbr1` until cutover. UniFi OS Server + U6+ are live (`unifi.md`). That ASUS is not `asus-nuc`.
+**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 → house ASUS → `nic1` / `vmbr1` (double NAT). Host `192.168.50.200/24` on `vmbr1` until cutover. UniFi OS Server + U6+ are live (`unifi.md`). India-GW is live (`tailscale-india/`). That ASUS is not `asus-nuc`.
 
-**After VyOS `config.boot`:** drop the `vmbr1` address; host `10.10.10.3` on `vmbr0.10`, gateway `10.10.10.1`. Git: `proxmox/interfaces`.
+**After WAN/management cutover:** drop the `vmbr1` address; host `10.10.10.3` on `vmbr0.10`, gateway `10.10.10.1`. Known-good file: `proxmox/interfaces`.
 
 **PLANNED WAN:** S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1`. Retire the house ASUS.
 
@@ -22,7 +22,8 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
 
   vmbr1 ── Proxmox 192.168.50.200           ← until cutover
   vmbr-svc (no NIC) ── VyOS eth2  10.10.0.1
-                   └── UniFi OS  10.10.0.2
+                   ├── UniFi OS       10.10.0.2
+                   └── India-GW       10.10.0.5    ← CURRENT (CT 108)
 ```
 
 | Index | NIC | Bridge | VM slot | MAC | VyOS | Role |
@@ -49,7 +50,7 @@ Trunks allow 10/20/30/40. DHCP `.100`–`.250` on the four client VLANs. Policy:
 
 Until cutover: Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN).
 
-VLAN 10 (after VyOS `config.boot` and Git `proxmox/interfaces`):
+VLAN 10 (after cutover, using `proxmox/interfaces`):
 
 | Address | Device |
 |---------|--------|
@@ -65,12 +66,15 @@ Services (`vmbr-svc`, not a VLAN):
 |---------|--------|
 | `10.10.0.1` | VyOS `eth2` |
 | `10.10.0.2` | UniFi OS Server (LXC 107) |
+| `10.10.0.3` | `tailscale-us` — PLANNED |
+| `10.10.0.4` | AdGuard — PLANNED |
+| `10.10.0.5` | `tailscale-india` (India-GW, CT 108) — CURRENT |
 
-Planned Services addresses: `adguard.md`, `tailscale.md`.
+Planned Services addresses: `adguard.md`, `tailscale-us.md`. India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
 
 ## CBS350
 
-Git desired state: `cbs350/running-config`. Apply from factory: `cbs350/README.md`. Save after the file is on running-config.
+Known-good snapshot: `cbs350/running-config`. Restore from factory: `cbs350/README.md`. Duplicate running-config to startup-config after the file is on the switch.
 
 Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fall to VLAN 1. Live gear may still have leftover VLAN 99 (deferred strip).
 
@@ -89,7 +93,7 @@ Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fal
 | 23–24 | access | 40 | India |
 | SFP 1–4 | shutdown | — | unused |
 
-Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is applied.
+Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is restored.
 
 ## Recovery
 
@@ -105,4 +109,4 @@ Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge act
 
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). AdGuard / Tailscale notes: `adguard.md`, `tailscale.md`. Not the same sitting as the S33 swap.
+See `REQUIREMENTS.md` (PLANNED / DEFERRED). AdGuard / US Tailscale notes: `adguard.md`, `tailscale-us.md`. India-GW is already documented as known-good in `tailscale-india/`. Not the same sitting as the S33 swap.

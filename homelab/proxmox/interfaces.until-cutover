@@ -1,6 +1,7 @@
-# Until cutover. Live on pve. Host mgmt is 192.168.50.200 on vmbr1 only.
-# No vmbr0.10 until VyOS is the router — then switch to `interfaces`.
-# Copy from this directory, then ifreload. Do not use the Network UI Apply button.
+# Known-good /etc/network/interfaces until cutover. Live on pve.
+# Host mgmt is 192.168.50.200 on vmbr1 only.
+# No vmbr0.10 until switching to `interfaces`.
+# A human copies this file, then ifreload. Do not use the Network UI Apply button.
 
 auto lo
 iface lo inet loopback

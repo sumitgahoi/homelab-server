@@ -1,6 +1,6 @@
 # Operator SSH key
 
-`macbook.pub` is the MacBook key used to log into Proxmox and Linux guests. VyOS already has this key in `../vyos/config.boot` (`disable-password-authentication`).
+`macbook.pub` is the MacBook key used to log into Proxmox and Linux guests. VyOS has this key in `../vyos/commands.txt` (`disable-password-authentication`).
 
 If SSH breaks on Proxmox, BMC iKVM.
 
