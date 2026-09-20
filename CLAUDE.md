@@ -10,4 +10,4 @@ Before any network / VyOS / Proxmox / VM 100 change:
 
 This repository is a human-executable runbook. Do not SSH into live gear unless the owner explicitly asks. Do not introduce Ansible, Terraform, generators, or apply scripts.
 
-Rebuild / apply: `homelab/proxmox/README.md` (host interfaces); `homelab/vyos/setup.md` (VyOS); `homelab/cbs350/README.md` (switch); `homelab/tailscale-india/setup.md` (India-GW). Topology: `homelab/README.md`. Repo map: `README.md`.
+Rebuild / apply: `homelab/proxmox/README.md` (host interfaces); `homelab/vyos/setup.md` (VyOS); `homelab/cbs350/README.md` (switch); `homelab/tailscale-india/setup.md` (India-GW); `homelab/adguard/setup.md` (AdGuard, PLANNED). Topology: `homelab/README.md`. Repo map: `README.md`.

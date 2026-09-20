@@ -28,6 +28,8 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `homelab/tailscale-india/README.md` | India-GW design and fail-closed notes |
 | `homelab/tailscale-india/setup.md` | How a human rebuilds India-GW (CT 108) |
 | `homelab/tailscale-us.md` | US Tailscale node (PLANNED) |
+| `homelab/adguard/README.md` | AdGuard design (PLANNED) |
+| `homelab/adguard/setup.md` | How a human creates or rebuilds AdGuard (CT 110) and points VyOS at it |
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 

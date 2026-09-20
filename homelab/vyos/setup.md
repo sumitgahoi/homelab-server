@@ -326,6 +326,11 @@ and does NOT allow:
 
 India DNS is handled as ordinary Internet traffic through India-GW.
 
+CURRENT `commands.txt` forwards Trusted/Guest/IoT to Cloudflare
+(`1.1.1.1` / `1.0.0.1`). The PLANNED single upstream is AdGuard
+`10.10.0.4`. That cutover is `../adguard/setup.md`, not this rebuild.
+Do not mix the two in one commit.
+
 Inspect:
 
 ```bash

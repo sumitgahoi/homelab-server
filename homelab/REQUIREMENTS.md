@@ -61,7 +61,7 @@ Known-good for this path is `vyos/commands.txt` plus `tailscale-india/setup.md`.
 ## PLANNED
 
 - S33 2.5G directly on `nic1`; retire the house ASUS. Isolation policy does not change.
-- AdGuard on Services (`10.10.0.4`): DNS only. VyOS stays the DHCP server. DHCP option 6 may later point appropriate clients at AdGuard. See `adguard.md`.
+- AdGuard on Services (`10.10.0.4`, CT 110): DNS only. VyOS stays the DHCP server. Trusted, Guest, and IoT keep DHCP option 6 as the VLAN gateway. VyOS `dns forwarding` has a single upstream, `10.10.0.4`. AdGuard holds `*.home.arpa` and DoT upstreams. IoT still must not use the Internet; IoT DNS is allowed only to its gateway. Guest and IoT may resolve `home.arpa` if they query it; they do not get that search domain. AdGuard down means those three VLANs lose DNS. India DNS is unchanged (PBR → India-GW). See `adguard/`.
 - Tailscale: not on VyOS. `tailscale-us` (`10.10.0.3`) = subnet router + US exit. See `tailscale-us.md`.
 - House IPv6 is still not in the routing design. When it is, India IPv6 must still have no US-WAN fallback; do not enable India IPv6 until an India IPv6 path exists.
 - Do not add a generic Services↔Trusted mesh. Trusted→Services stays the baseline; add narrowly scoped Services-originated exceptions when a real service requires them. Hairpin NAT only if a future service needs it.

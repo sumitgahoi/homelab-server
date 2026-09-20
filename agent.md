@@ -96,6 +96,8 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 | UniFi as-built | `homelab/unifi.md` |
 | India-GW rebuild | `homelab/tailscale-india/setup.md` |
 | India-GW design notes | `homelab/tailscale-india/README.md` |
+| AdGuard rebuild | `homelab/adguard/setup.md` |
+| AdGuard design notes | `homelab/adguard/README.md` |
 | Physical catalog | `inventory.md` |
 | Guest list | `homelab/proxmox.md` |
 
@@ -103,7 +105,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 
 ## As-built (live)
 
-Proxmox mgmt is `192.168.50.200` on `vmbr1` (ASUS LAN) until cutover. Then copy Git `proxmox/interfaces` (`vmbr0.10` = `10.10.10.3`). WAN is still house ASUS (double NAT). UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. VyOS known-good is `vyos/commands.txt`. AdGuard and `tailscale-us` are not deployed.
+Proxmox mgmt is `192.168.50.200` on `vmbr1` (ASUS LAN) until cutover. Then copy Git `proxmox/interfaces` (`vmbr0.10` = `10.10.10.3`). WAN is still house ASUS (double NAT). UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. VyOS known-good is `vyos/commands.txt`. AdGuard (CT 110) and `tailscale-us` are not deployed.
 
 ## Layout
 

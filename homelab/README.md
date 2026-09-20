@@ -67,10 +67,10 @@ Services (`vmbr-svc`, not a VLAN):
 | `10.10.0.1` | VyOS `eth2` |
 | `10.10.0.2` | UniFi OS Server (LXC 107) |
 | `10.10.0.3` | `tailscale-us` — PLANNED |
-| `10.10.0.4` | AdGuard — PLANNED |
+| `10.10.0.4` | AdGuard (CT 110) — PLANNED |
 | `10.10.0.5` | `tailscale-india` (India-GW, CT 108) — CURRENT |
 
-Planned Services addresses: `adguard.md`, `tailscale-us.md`. India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
+Planned Services addresses: `adguard/`, `tailscale-us.md`. India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
 
 ## CBS350
 
@@ -109,4 +109,4 @@ Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge act
 
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). AdGuard / US Tailscale notes: `adguard.md`, `tailscale-us.md`. India-GW is already documented as known-good in `tailscale-india/`. Not the same sitting as the S33 swap.
+See `REQUIREMENTS.md` (PLANNED / DEFERRED). AdGuard / US Tailscale notes: `adguard/`, `tailscale-us.md`. India-GW is already documented as known-good in `tailscale-india/`. Not the same sitting as the S33 swap.
