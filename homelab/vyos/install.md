@@ -12,10 +12,10 @@ It does **not** apply the house routing policy. That happens afterwards, command
 
 ## pve — create the VM
 
-Until cutover the host is `root@192.168.50.200`. After cutover: `root@10.10.10.3`.
+The host is `root@10.10.10.3`.
 
 ```bash
-ssh root@192.168.50.200
+ssh root@10.10.10.3
 ```
 
 Abort if VM 100 already exists.

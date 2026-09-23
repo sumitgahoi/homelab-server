@@ -11,15 +11,20 @@ Expect:
 - eth0.20 → 10.10.20.1/24
 - eth0.30 → 10.10.30.1/24
 - eth0.40 → 10.10.40.1/24
-- eth1 → WAN DHCP
+- eth1 → WAN DHCPv4 + DHCPv6/autoconf (GUA when the ISP offers one)
 - eth2 → 10.10.0.1/24
-- all expected interfaces u/u
+- LAN VIFs / eth2 → no inet6
 
 ## 2. WAN
 
 ping 1.1.1.1 count 4
 
 Expect replies.
+
+ping ipv6 2001:4860:4860::8888 count 4
+
+Expect replies when `eth1` has a GUA and `::/0`. IPv4 WAN is enough if
+the ISP has no IPv6. LAN clients must not have a GUA or IPv6 default.
 
 ## 3. DNS
 

@@ -1,12 +1,12 @@
-# AdGuard Home — PLANNED
+# AdGuard Home — CURRENT
 
-Not deployed. Rebuild: `setup.md`. Invariants: `../REQUIREMENTS.md`.
+CT 110 at `10.10.0.4`. Rebuild: `setup.md`. Invariants: `../REQUIREMENTS.md`.
 
 | Node | Where | IP | Role | State |
 |------|-------|----|------|--------|
-| `adguard` | LXC 110 on `vmbr-svc` | `10.10.0.4` | DNS only. VyOS upstream for Trusted, Guest, IoT | PLANNED |
+| `adguard` | LXC 110 on `vmbr-svc` | `10.10.0.4` | DNS only. VyOS upstream for Trusted, Guest, IoT | CURRENT |
 
-Gateway `10.10.0.1`. Do not reuse `.2` / `.3` / `.5`. No AdGuard DHCP.
+Gateway `10.10.0.1`. Do not reuse `.2` / `.3` (unused) / `.5`. No AdGuard DHCP.
 
 ```text
 Trusted / Guest / IoT
@@ -16,9 +16,9 @@ Trusted / Guest / IoT
          ├─ *.home.arpa
          └─ DoT (US WAN via Services NAT)
 
-Remote Tailscale (later, not this sitting)
-    → AdGuard 10.10.0.4 directly on vmbr-svc
-      (not the VyOS recursor)
+Remote WireGuard (later, `../wireguard/`)
+    → 10.10.80.1 or 10.10.81.1 (VyOS recursor)
+      not 10.10.0.4
 
 VLAN 40
     → 1.1.1.1 via India-GW

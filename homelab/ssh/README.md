@@ -7,7 +7,7 @@ If SSH breaks on Proxmox, BMC iKVM.
 From this directory:
 
 ```bash
-ssh-copy-id -i macbook.pub root@192.168.50.200
+ssh-copy-id -i macbook.pub root@10.10.10.3
 ```
 
 ```bash
@@ -17,7 +17,7 @@ ssh-copy-id -i macbook.pub USER@HOST
 Then copy `disable-passwords.conf` (Proxmox or a Debian/Ubuntu guest):
 
 ```bash
-scp disable-passwords.conf root@192.168.50.200:/etc/ssh/sshd_config.d/disable-passwords.conf
+scp disable-passwords.conf root@10.10.10.3:/etc/ssh/sshd_config.d/disable-passwords.conf
 ```
 
 ```bash

@@ -63,7 +63,7 @@ Understand the infrastructure by reading the runbooks and the known-good snapsho
 
 ## Before changing network infrastructure
 
-Before changing Proxmox networking, VyOS, VM 100, VLANs, firewall, routing, DHCP, DNS, NAT, Tailscale, switch topology, or related infrastructure:
+Before changing Proxmox networking, VyOS, VM 100, VLANs, firewall, routing, DHCP, DNS, NAT, Tailscale, WireGuard, switch topology, or related infrastructure:
 
 1. Read this file.
 2. Read `homelab/REQUIREMENTS.md`.
@@ -85,10 +85,11 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 |------|-----------|
 | Required behavior and invariants | `homelab/REQUIREMENTS.md` |
 | Current topology / wiring | `homelab/README.md` |
-| Proxmox host interfaces (known-good) | `homelab/proxmox/interfaces` (after cutover) and `homelab/proxmox/interfaces.until-cutover` |
+| Proxmox host interfaces (known-good) | `homelab/proxmox/interfaces` (CURRENT). Archive: `interfaces.until-cutover` |
 | How to copy host interfaces | `homelab/proxmox/README.md` |
 | VyOS known-good CLI | `homelab/vyos/commands.txt` |
-| How to rebuild / change VyOS | `homelab/vyos/setup.md` |
+| VyOS tree form (read only) | `homelab/vyos/config.boot` (do not `load`) |
+| How to rebuild / change VyOS | `homelab/vyos/setup.md` (IPv4 + WAN IPv6) |
 | How to create VM 100 | `homelab/vyos/install.md` |
 | Switch configuration (known-good) | `homelab/cbs350/running-config` |
 | How to restore the switch | `homelab/cbs350/README.md` |
@@ -96,16 +97,20 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 | UniFi as-built | `homelab/unifi.md` |
 | India-GW rebuild | `homelab/tailscale-india/setup.md` |
 | India-GW design notes | `homelab/tailscale-india/README.md` |
+| WireGuard rebuild (wg0/wg1, wg-india) | `homelab/wireguard/setup.md` |
+| WireGuard design notes | `homelab/wireguard/README.md` |
+| US Tailscale (will not deploy) | `homelab/tailscale-us/README.md` |
 | AdGuard rebuild | `homelab/adguard/setup.md` |
 | AdGuard design notes | `homelab/adguard/README.md` |
+| Beryl 7 travel router (PLANNED) | `homelab/beryl.md` |
 | Physical catalog | `inventory.md` |
 | Guest list | `homelab/proxmox.md` |
 
-`commands.txt` is the known-good VyOS configuration exported from the live router (`show configuration commands`, password hash removed). A human applies `set` / `delete` commands. It is not a bulk-apply script.
+`commands.txt` is the known-good VyOS configuration exported from the live router (`show configuration commands`, password hash removed). A human applies `set` / `delete` commands. It is not a bulk-apply script. `config.boot` is the same facts for reading. Do not `load` it.
 
 ## As-built (live)
 
-Proxmox mgmt is `192.168.50.200` on `vmbr1` (ASUS LAN) until cutover. Then copy Git `proxmox/interfaces` (`vmbr0.10` = `10.10.10.3`). WAN is still house ASUS (double NAT). UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. VyOS known-good is `vyos/commands.txt`. AdGuard (CT 110) and `tailscale-us` are not deployed.
+WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). Known-good CLI is `vyos/commands.txt`. WireGuard on VyOS is PLANNED (`wireguard/`). Do not create CT 109.
 
 ## Layout
 

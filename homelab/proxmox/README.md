@@ -4,18 +4,18 @@ These files are **known-good snapshots** of `/etc/network/interfaces` on the Pro
 
 A human copies the matching file and runs `ifreload`. That is intentional. Do not wrap this in Ansible or a deploy script. Do not use the Proxmox Network UI Apply button.
 
-Git tracks `interfaces` (after VyOS is the router) and `interfaces.until-cutover`. Copy from this directory on the MacBook.
+Git tracks `interfaces` (CURRENT) and `interfaces.until-cutover` (pre-cutover archive). Copy from this directory on the MacBook.
 
-Until cutover:
+CURRENT:
+
+```bash
+scp interfaces root@10.10.10.3:/etc/network/interfaces
+```
+
+Archive (do not use unless reverting the host to the pre-cutover ASUS LAN):
 
 ```bash
 scp interfaces.until-cutover root@192.168.50.200:/etc/network/interfaces
-```
-
-After VyOS is the default router:
-
-```bash
-scp interfaces root@192.168.50.200:/etc/network/interfaces
 ```
 
 On the host, `/etc/network/interfaces.d` must not have competing files. Then:
@@ -28,4 +28,4 @@ ifreload -a --syntax-check
 ifreload -a
 ```
 
-After cutover the host should move to `10.10.10.3` on `vmbr0.10`. If `ifreload` strands SSH: BMC iKVM. Disks, guests, recovery: `../proxmox.md`.
+The host is `10.10.10.3` on `vmbr0.10`. If `ifreload` strands SSH: BMC iKVM. Disks, guests, recovery: `../proxmox.md`.

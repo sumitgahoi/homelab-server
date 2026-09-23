@@ -8,7 +8,7 @@ Catalog only. Design lives in the domain folder.
 | Samsung 960 EVO 250 GB (OS) · WD Black SN770 1 TB (guests) · WD Red 3 TB (bulk) | host | `homelab/proxmox.md` |
 | Thermalright PA120 SE · Seasonic GX-850 | host | — |
 | Arris S33 (DOCSIS 3.1, 2.5G) | rack U6–U7 | `homelab/README.md` |
-| House ASUS router | on S33 (retire at WAN cutover; not `asus-nuc`) | `homelab/README.md` |
+| House ASUS router | retired (was on S33; not `asus-nuc`) | — |
 | Cisco CBS350-24FP-4G | rack U18 | `homelab/cbs350/running-config`, `homelab/README.md` |
 | UniFi U6+ | CBS350 GE2 | `homelab/unifi.md` |
 | Eaton SR18UB | basement | `rack/` |
@@ -22,6 +22,7 @@ Catalog only. Design lives in the domain folder.
 | 3× B&W CWM73 S2 · 2× CWM663 · 2× CCM662 | family room | `home-theatre/` |
 | HSU VTF-15H MK2 | family room | `home-theatre/` |
 | `asus-nuc` (Tailscale India exit) | India (physical) | `homelab/tailscale-india/setup.md` |
+| GL.iNet GL-MT3600BE Beryl 7 (dual-band Wi-Fi 7 travel router) | travel | — |
 
 Pre-run HDMI, speaker, LFE, and network between basement and family room: **done**.
 

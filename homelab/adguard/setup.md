@@ -1,6 +1,6 @@
 # AdGuard Home Setup
 
-How to create or rebuild CT 110, then point VyOS DNS forwarding at it.
+CURRENT. How to create or rebuild CT 110, then point VyOS DNS forwarding at it.
 
 AdGuard is DNS only. VyOS stays the DHCP server and the resolver address
 clients use. Do not enable AdGuard DHCP. VLAN 40 does not use this guest.

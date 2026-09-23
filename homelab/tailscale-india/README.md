@@ -1,6 +1,6 @@
 # Tailscale India-GW — CURRENT
 
-Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Router known-good: `../vyos/commands.txt`. Rebuild: `setup.md`. US node (different guest, not this path): `../tailscale-us.md`.
+Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Router known-good: `../vyos/commands.txt`. Rebuild: `setup.md`. US remote access and the **PLANNED** VLAN 40 path (`wg-india`) are `../wireguard/`. This LXC stays CURRENT until `wg-india` fail-closed tests pass; then retire CT 108. Tailscale remains on `asus-nuc` for travel.
 
 This directory is a **runbook plus design notes**. `setup.md` is the authoritative rebuild procedure. There is intentionally no automation around it.
 
@@ -9,7 +9,7 @@ This directory is a **runbook plus design notes**. `setup.md` is the authoritati
 | `asus-nuc` | India (physical) | — | exit node | CURRENT (external) |
 | `tailscale-india` | LXC 108 on `vmbr-svc` | `10.10.0.5` | India-GW: `--exit-node=asus-nuc` only. No advertised routes | CURRENT |
 
-Tag: `tag:homelab-india-gw`. Gateway `10.10.0.1`. Do not reuse `.2` (UniFi), `.3` (`tailscale-us`), or `.4` (AdGuard). One process cannot advertise a US exit and consume `asus-nuc`.
+Tag: `tag:homelab-india-gw`. Gateway `10.10.0.1`. Do not reuse `.2` (UniFi), `.3` (unused), or `.4` (AdGuard). One process cannot advertise a US exit and consume `asus-nuc`.
 
 Do not advertise `10.10.40.0/24` (or other client nets) into the tailnet. India-GW is not a subnet router.
 

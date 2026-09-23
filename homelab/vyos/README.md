@@ -7,10 +7,13 @@ setup.md / install.md / verify.md
         = how a human creates, rebuilds, and checks the router
 
 commands.txt
-        = known-good configuration exported from the live router
+        = known-good configuration (apply this)
+
+config.boot
+        = same config, tree form (read this; do not load)
 ```
 
-Git records both. A human applies `set` / `delete` commands, verifies, then updates Git.
+Git records both. A human applies `set` / `delete` from `commands.txt`, verifies, then updates Git.
 
 Do not introduce Ansible, Terraform, generators, or a script that bulk-applies `commands.txt`.
 
@@ -18,14 +21,13 @@ Do not introduce Ansible, Terraform, generators, or a script that bulk-applies `
 
 | File | Role |
 |------|------|
-| `commands.txt` | Authoritative known-good VyOS configuration. Produced on the live router with `show configuration commands`. The `encrypted-password` line is deliberately omitted. The SSH public key may remain. |
-| `setup.md` | Manual rebuild and day-2 change procedure. Apply commands logically / section-by-section. |
+| `commands.txt` | Authoritative known-good. `show configuration commands`. Password line omitted. SSH public key may remain. Rebuild from this. |
+| `config.boot` | Same facts, indented. Easier to read. Password is `redacted`. **Do not `load`.** Export when you export `commands.txt`. Do not hand-edit one file and not the other. |
+| `setup.md` | Manual rebuild and day-2 change procedure. IPv4 plus WAN IPv6 on `eth1` only. |
 | `install.md` | Create and install VM 100. Then continue in `setup.md`. |
 | `verify.md` | Checks after a fresh rebuild or a significant change. |
 
-There is no hand-maintained `config.boot` in this repository.
-
-Hand-editing `config.boot` and `load`ing it caused unexpected round-trip behavior for some VyOS firewall state. VyOS-generated `set` commands are the preferred human-readable representation. Do not add `config.boot` back as a second source of truth.
+`load`ing `config.boot` produced unexpected firewall round-trip behavior. That is why apply stays `set` / `delete` from `commands.txt`.
 
 ## Rebuild
 
@@ -65,7 +67,7 @@ Do **not** blindly paste the entire `commands.txt` into a running router.
        ↓
     save
        ↓
-    regenerate `commands.txt` from the known-good running config
+    regenerate `commands.txt` and `config.boot` from the known-good running config
        ↓
     review the Git diff
        ↓

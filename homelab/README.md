@@ -1,16 +1,11 @@
 # Homelab topology
 
-As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces` / `proxmox/interfaces.until-cutover`. Router known-good: `vyos/commands.txt` (rebuild: `vyos/setup.md`). Switch known-good: `cbs350/running-config` (restore: `cbs350/README.md`).
+As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces` (CURRENT). Pre-cutover host snapshot: `proxmox/interfaces.until-cutover` (archive). Router known-good: `vyos/commands.txt` (rebuild: `vyos/setup.md`). Switch known-good: `cbs350/running-config` (restore: `cbs350/README.md`).
 
-**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 → house ASUS → `nic1` / `vmbr1` (double NAT). Host `192.168.50.200/24` on `vmbr1` until cutover. UniFi OS Server + U6+ are live (`unifi.md`). India-GW is live (`tailscale-india/`). That ASUS is not `asus-nuc`.
-
-**After WAN/management cutover:** drop the `vmbr1` address; host `10.10.10.3` on `vmbr0.10`, gateway `10.10.10.1`. Known-good file: `proxmox/interfaces`.
-
-**PLANNED WAN:** S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1`. Retire the house ASUS.
+**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1` (IPv4 + IPv6). House ASUS retired. Host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UniFi OS Server + U6+ are live (`unifi.md`). India-GW is live (`tailscale-india/`). `asus-nuc` is the India exit. Client VLANs stay IPv4.
 
 ```text
-  Internet ── S33 ── ASUS ── nic1 ── vmbr1 ── VyOS eth1     ← as-built
-  Internet ── S33 ────────── nic1 ── vmbr1 ── VyOS eth1     ← planned
+  Internet ── S33 ────────── nic1 ── vmbr1 ── VyOS eth1
 
   CBS350 GE1 ── nic0 ── vmbr0 ── VyOS eth0 (LAN trunk)
        │                 ├── .10 trusted   10.10.10.1
@@ -18,18 +13,21 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
        │                 ├── .30 iot       10.10.30.1
        │                 └── .40 india     10.10.40.1
        ├── GE2 ── UniFi U6+ (native 10, tagged 20/30/40)
-       └── Proxmox 10.10.10.3 on vmbr0.10   ← after cutover
+       └── Proxmox 10.10.10.3 on vmbr0.10
 
-  vmbr1 ── Proxmox 192.168.50.200           ← until cutover
+  vmbr1 ── no host IP
   vmbr-svc (no NIC) ── VyOS eth2  10.10.0.1
                    ├── UniFi OS       10.10.0.2
+                   ├── AdGuard        10.10.0.4    ← CURRENT (CT 110)
                    └── India-GW       10.10.0.5    ← CURRENT (CT 108)
+
+  PLANNED: VyOS wg0 / wg1 / wg-india (see wireguard/)
 ```
 
 | Index | NIC | Bridge | VM slot | MAC | VyOS | Role |
 |-------|-----|--------|---------|-----|------|------|
 | 0 | `nic0` | `vmbr0` | `net0` | `02:00:00:00:00:00` | `eth0` | LAN trunk → CBS350 GE1 |
-| 1 | `nic1` | `vmbr1` | `net1` | `02:00:00:00:00:01` | `eth1` | WAN (host `192.168.50.200` until cutover; then no host IP) |
+| 1 | `nic1` | `vmbr1` | `net1` | `02:00:00:00:00:01` | `eth1` | WAN (no host IP) |
 | 2 | — | `vmbr-svc` | `net2` | `02:00:00:00:00:02` | `eth2` | Services `10.10.0.1/24` |
 
 MACs are set when you create the VM. Do not delete/re-add guest NICs. BMC = onboard Realtek 1G (AST2600), not OS networking.
@@ -48,9 +46,7 @@ Trunks allow 10/20/30/40. DHCP `.100`–`.250` on the four client VLANs. Policy:
 
 ## Addresses
 
-Until cutover: Proxmox `192.168.50.200` on `vmbr1` (ASUS LAN).
-
-VLAN 10 (after cutover, using `proxmox/interfaces`):
+VLAN 10 (`proxmox/interfaces`):
 
 | Address | Device |
 |---------|--------|
@@ -66,11 +62,11 @@ Services (`vmbr-svc`, not a VLAN):
 |---------|--------|
 | `10.10.0.1` | VyOS `eth2` |
 | `10.10.0.2` | UniFi OS Server (LXC 107) |
-| `10.10.0.3` | `tailscale-us` — PLANNED |
-| `10.10.0.4` | AdGuard (CT 110) — PLANNED |
+| `10.10.0.3` | unused (do not assign; was a US Tailscale guest) |
+| `10.10.0.4` | AdGuard (CT 110) — CURRENT |
 | `10.10.0.5` | `tailscale-india` (India-GW, CT 108) — CURRENT |
 
-Planned Services addresses: `adguard/`, `tailscale-us.md`. India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
+AdGuard rebuild: `adguard/setup.md`. US VPN is on VyOS, not Services: `wireguard/` (PLANNED). India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
 
 ## CBS350
 
@@ -99,8 +95,7 @@ Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. 
 
 | Tier | When | Path |
 |------|------|------|
-| 1 | until cutover | `https://192.168.50.200:8006` |
-| 1 | after cutover | `https://10.10.10.3:8006` |
+| 1 | Proxmox UI | `https://10.10.10.3:8006` |
 | 2 | VyOS down | CBS350 port 12, static `10.10.10.99/24`, no GW |
 | 2b | switch dead | laptop ↔ `nic0`, VLAN 10 |
 | 3 / BMC | no network / OS dead | iKVM |
@@ -109,4 +104,4 @@ Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge act
 
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). AdGuard / US Tailscale notes: `adguard/`, `tailscale-us.md`. India-GW is already documented as known-good in `tailscale-india/`. Not the same sitting as the S33 swap.
+See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (PLANNED). Beryl 7 travel router (not deployed): `beryl.md`. India-GW is current in `tailscale-india/`. Do not deploy `tailscale-us`.

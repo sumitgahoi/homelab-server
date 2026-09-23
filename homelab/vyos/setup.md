@@ -10,9 +10,18 @@ The complete known-good configuration is stored in:
 
     show configuration commands
 
-Do not hand-maintain a `config.boot` in Git, and do not `load` one onto the router.
+Do not hand-edit `config.boot` as a second source of truth, and do not
+`load` one onto the router. `commands.txt` is what you apply. `config.boot`
+is the same config in tree form for reading (password `redacted`).
 
-There is no `config.boot` in this directory. `commands.txt` is the known-good snapshot.
+WAN IPv6 on `eth1` only is in `commands.txt` (CURRENT). On a rebuild,
+do not apply `eth1` `dhcpv6` / `autoconf` or `firewall ipv6` in the
+IPv4 steps; use the WAN IPv6 sitting later in this file (firewall
+before a GUA).
+
+PLANNED WireGuard (`wg0` / `wg1` / `wg-india`) is
+`../wireguard/setup.md`. Do not mix it into this
+rebuild. Do not create CT 109. Keep CT 108 until `wg-india` Part C.6.
 
 The rebuild philosophy is:
 
@@ -144,6 +153,11 @@ These configure:
 - eth2 as Services
 - deterministic interface MAC mappings
 - IPv6 restrictions on VLAN40
+
+WAN IPv6 on `eth1` and the same IPv6 lock on `eth0.10`/`.20`/`.30` and
+`eth2` are later in this file (CURRENT; apply on a rebuild if
+`commands.txt` does not yet contain them). Do not mix them into the
+IPv4 section. Do not request DHCPv6-PD.
 
 Do these commands manually.
 
@@ -326,10 +340,9 @@ and does NOT allow:
 
 India DNS is handled as ordinary Internet traffic through India-GW.
 
-CURRENT `commands.txt` forwards Trusted/Guest/IoT to Cloudflare
-(`1.1.1.1` / `1.0.0.1`). The PLANNED single upstream is AdGuard
-`10.10.0.4`. That cutover is `../adguard/setup.md`, not this rebuild.
-Do not mix the two in one commit.
+CURRENT forwarding for Trusted/Guest/IoT is a single upstream, AdGuard
+`10.10.0.4` (`commands.txt`). Rebuild: `../adguard/setup.md` after
+CT 110 exists. Do not mix Cloudflare back in as a second name-server.
 
 Inspect:
 
@@ -585,7 +598,8 @@ exit
 
 # Step 15 — Capture the New Known-Good State
 
-After making intentional VyOS changes, regenerate `commands.txt`.
+After making intentional VyOS changes, regenerate `commands.txt` and
+the readable `config.boot`.
 
 From operational mode:
 
@@ -594,7 +608,12 @@ From operational mode:
 show configuration commands | grep -v "encrypted-password" > /tmp/commands.txt
 ```
 
-Verify that no password hash remains:
+```bash
+cp /config/config.boot /tmp/config.boot
+```
+
+On the Mac, replace the `encrypted-password` value with `redacted`
+before commit. Verify `commands.txt` has no hash:
 
 ```bash
 grep "encrypted-password" /tmp/commands.txt
@@ -606,10 +625,11 @@ Expected:
 <no output>
 ```
 
-Then copy it back into the Git repository:
+Then copy both into the Git repository:
 
 ```bash
 scp vyos@10.10.10.1:/tmp/commands.txt vyos/commands.txt
+scp vyos@10.10.10.1:/tmp/config.boot vyos/config.boot
 ```
 
 Review the Git diff before committing.
@@ -629,6 +649,190 @@ Review Git diff
         ↓
 Commit
 ```
+
+---
+
+# WAN IPv6 on eth1 (CURRENT)
+
+Live on the router: IPv6 on the WAN only. Clients stay IPv4. These
+lines are in `commands.txt`. On a rebuild, apply this sitting (not
+mixed into the IPv4 steps) so the firewall exists before a GUA.
+UDP `51820`–`51822` stays in `../wireguard/setup.md`.
+
+Do the firewall **before** `eth1` has a GUA on a fresh box. After every
+`commit-confirm`, `confirm` + `save` **before** the next section.
+
+## 1 — Lock IPv6 off the LAN and Services
+
+VLAN 40 already has this in `commands.txt`. Match it on the other
+client VIFs and `eth2`. Do **not** set these on `eth1`. Per-VIF `disable-forwarding` plus a
+forward-filter default-drop is intentional (IPv6 stays dead if someone
+later adds a forward accept).
+
+```text
+set interfaces ethernet eth0 vif 10 ipv6 address no-default-link-local
+set interfaces ethernet eth0 vif 10 ipv6 disable-forwarding
+set interfaces ethernet eth0 vif 20 ipv6 address no-default-link-local
+set interfaces ethernet eth0 vif 20 ipv6 disable-forwarding
+set interfaces ethernet eth0 vif 30 ipv6 address no-default-link-local
+set interfaces ethernet eth0 vif 30 ipv6 disable-forwarding
+set interfaces ethernet eth2 ipv6 address no-default-link-local
+set interfaces ethernet eth2 ipv6 disable-forwarding
+```
+
+`eth0.40` must keep its existing two lines.
+
+```bash
+compare
+commit-confirm 60
+```
+
+Still in configure. Operational checks use `run`. Linux names are
+`eth0.10` / `eth0.20` / `eth0.30` / `eth0.40` / `eth2`.
+
+No IPv6 addresses at all (no GUA, no link-local). Operational `show
+interfaces` must list IPv4 only — no `inet6` / no `fe80::`:
+
+```bash
+run show interfaces ethernet eth0 vif 10
+run show interfaces ethernet eth0 vif 20
+run show interfaces ethernet eth0 vif 30
+run show interfaces ethernet eth0 vif 40
+run show interfaces ethernet eth2
+```
+
+VyOS is not sending Router Advertisements. Empty is success (this
+box has no `service router-advert`):
+
+```bash
+run show configuration commands | grep router-advert
+```
+
+`eth1` must not be in the lock. Empty `system ipv6` is success (do not
+set `system ipv6 disable-forwarding`):
+
+```bash
+run show configuration commands | grep disable-forwarding
+run show configuration commands | grep 'system ipv6'
+```
+
+Expect `disable-forwarding` only on `eth0` vif 10/20/30/40 and `eth2`.
+
+Then `confirm` + `save`.
+
+## 2 — IPv6 firewall (default-drop) before a GUA
+
+Rule 15 is not a substitute for default-drop. It exists because rule 30
+accepts ICMPv6 without a conntrack state match. Do not type-filter
+ICMPv6 on `eth1` input (ND, RA, PTB). Keep the DHCPv6 client hole:
+`address dhcpv6` is always on `eth1`, and UDP 546 replies are not
+always `related`.
+
+No `output filter`: router-originated IPv6 (RS, DHCPv6 SOLICIT, ping)
+stays implicit accept. Do not add IPv6 SSH. Management stays Trusted
+IPv4 (`10.10.10.1`). WAN IPv6 input default-drop means SSH to a GUA
+fails; that is intended.
+
+```text
+set firewall ipv6 input filter default-action 'drop'
+set firewall ipv6 input filter rule 10 action 'accept'
+set firewall ipv6 input filter rule 10 state 'established'
+set firewall ipv6 input filter rule 10 state 'related'
+set firewall ipv6 input filter rule 15 action 'drop'
+set firewall ipv6 input filter rule 15 state 'invalid'
+set firewall ipv6 input filter rule 20 action 'accept'
+set firewall ipv6 input filter rule 20 description 'WAN DHCPv6 client'
+set firewall ipv6 input filter rule 20 destination port '546'
+set firewall ipv6 input filter rule 20 inbound-interface name 'eth1'
+set firewall ipv6 input filter rule 20 protocol 'udp'
+set firewall ipv6 input filter rule 20 source port '547'
+set firewall ipv6 input filter rule 30 action 'accept'
+set firewall ipv6 input filter rule 30 description 'ICMPv6 on WAN'
+set firewall ipv6 input filter rule 30 inbound-interface name 'eth1'
+set firewall ipv6 input filter rule 30 protocol 'icmpv6'
+set firewall ipv6 forward filter default-action 'drop'
+```
+
+```bash
+compare
+commit-confirm 60
+```
+
+Then `confirm` + `save`.
+
+## 3 — Ask the ISP for IPv6 on eth1 only
+
+Always both. Never PD. This is the WAN IPv6 policy, not an ISP recipe.
+
+`ipv6 address autoconf` accepts RAs on a forwarding WAN (`accept_ra=2`)
+and is how `::/0` is learned (DHCPv6 does not carry a default route).
+`address dhcpv6` requests IA_NA if the ISP offers it. Do not set
+`ipv6 disable-forwarding` on `eth1`.
+
+```text
+set interfaces ethernet eth1 ipv6 address autoconf
+set interfaces ethernet eth1 address dhcpv6
+```
+
+Do **not**:
+
+```text
+set interfaces ethernet eth1 dhcpv6-options pd ...
+```
+
+PD is a prefix for downstream networks. This house does not want LAN
+IPv6.
+
+```bash
+compare
+commit-confirm 60
+```
+
+Still in configure. `ping6` and `cat` are not op-mode commands on this
+image.
+
+```bash
+run show interfaces ethernet eth1
+run show ipv6 route
+run show ipv6 forwarding
+run ping ipv6 2001:4860:4860::8888 count 4
+```
+
+A GUA and `::/0` can take a minute after commit. If `eth1` still has
+only `fe80::` and no default, wait and re-run the two `show` lines.
+IPv4 on `eth1` is unrelated.
+
+Expect a GUA on `eth1` (SLAAC, IA_NA, or both; two GUAs are fine),
+`::/0` via the ISP link-local, and IPv6 forwarding enabled. Then
+`confirm` + `save`.
+
+If there is no GUA and no `::/0` after a few minutes, leave this
+sitting in place (lock + firewall + both clients) and continue on
+IPv4. Do not add PD to “make IPv6 work.”
+
+## 4 — Confirm the house has no LAN IPv6
+
+Repeat the §1 `show interfaces` VIF/`eth2` checks and `grep router-advert`.
+Then:
+
+```bash
+run show ipv6 route
+```
+
+Expect no `::/0` via a LAN VIF. `eth0.40` already has the IPv6 lock.
+
+From a Trusted client (not `curl -6` alone):
+
+```bash
+ip -6 addr
+ip -6 route
+```
+
+Expect: link-local only. No GUA, no `::/0`. Then `ping6` / `curl -6`
+must fail.
+
+Export `commands.txt` (Step 15). Omit nothing from this sitting;
+there are no WireGuard keys here.
 
 ---
 

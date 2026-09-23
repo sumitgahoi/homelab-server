@@ -1,6 +1,6 @@
-# Known-good /etc/network/interfaces until cutover. Live on pve.
-# Host mgmt is 192.168.50.200 on vmbr1 only.
-# No vmbr0.10 until switching to `interfaces`.
+# ARCHIVE — pre-cutover /etc/network/interfaces. Not live.
+# Host mgmt was 192.168.50.200 on vmbr1 (house ASUS LAN).
+# CURRENT host file is `interfaces` (10.10.10.3 on vmbr0.10).
 # A human copies this file, then ifreload. Do not use the Network UI Apply button.
 
 auto lo
@@ -12,7 +12,7 @@ iface nic0 inet manual
 auto nic1
 iface nic1 inet manual
 
-# ASUS LAN. Host mgmt until VyOS is the default router.
+# Archive: house ASUS LAN. Host mgmt before VyOS was the default router.
 auto vmbr1
 iface vmbr1 inet static
     address 192.168.50.200/24

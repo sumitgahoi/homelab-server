@@ -1,6 +1,5 @@
-# Known-good /etc/network/interfaces on pve after cutover.
-# Use after VyOS answers on 10.10.10.1. Until then the host stays
-# 192.168.50.200 on vmbr1 — see ../proxmox.md.
+# Known-good /etc/network/interfaces on pve (CURRENT).
+# Host management is 10.10.10.3 on vmbr0.10. No IP on vmbr1.
 # A human copies this file, then ifreload. Do not use the Proxmox Network UI Apply button.
 
 auto lo
