@@ -34,10 +34,12 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `homelab/tailscale-us/README.md` | US Tailscale guest — will not deploy |
 | `homelab/adguard/README.md` | AdGuard design (CURRENT) |
 | `homelab/adguard/setup.md` | How a human creates or rebuilds AdGuard (CT 110) and points VyOS at it |
+| `homelab/dev/README.md` | Dev VM design (CURRENT): VM 101, `10.10.10.10` |
+| `homelab/dev/setup.md` | How a human creates or rebuilds the Debian dev VM |
 | `homelab/beryl.md` | Beryl 7 travel router design (PLANNED). Not deployed |
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 
-**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). India-GW is live (`homelab/tailscale-india/setup.md`). AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). Known-good CLI is `homelab/vyos/commands.txt`. WireGuard on VyOS is PLANNED (`homelab/wireguard/`). Do not deploy `tailscale-us`.
+**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). India-GW is live (`homelab/tailscale-india/setup.md`). AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). Known-good CLI is `homelab/vyos/commands.txt`. WireGuard on VyOS is PLANNED (`homelab/wireguard/`). Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
 
 Do not introduce Ansible, Terraform, generators, deployment scripts, or CI/CD for this homelab. Copy host interfaces from `homelab/proxmox/README.md`. Rebuild or change VyOS from `homelab/vyos/setup.md`. Operator SSH key: `homelab/ssh/README.md`.

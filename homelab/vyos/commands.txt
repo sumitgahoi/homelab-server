@@ -161,7 +161,7 @@ set service dhcp-server shared-network-name IOT subnet 10.10.30.0/24 range 0 sta
 set service dhcp-server shared-network-name IOT subnet 10.10.30.0/24 range 0 stop '10.10.30.250'
 set service dhcp-server shared-network-name IOT subnet 10.10.30.0/24 subnet-id '3'
 set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 option default-router '10.10.10.1'
-set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 option domain-name 'homelab.local'
+set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 option domain-name 'home.arpa'
 set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 option name-server '10.10.10.1'
 set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 range 0 start '10.10.10.100'
 set service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 range 0 stop '10.10.10.250'

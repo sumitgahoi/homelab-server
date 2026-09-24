@@ -167,6 +167,7 @@ Two changes only:
 | `pve.home.arpa` | `10.10.10.3` |
 | `unifi.home.arpa` | `10.10.0.2` |
 | `adguard.home.arpa` | `10.10.0.4` |
+| `dev.home.arpa` | `10.10.10.10` |
 
 Do not enable AdGuard DHCP.
 
@@ -214,7 +215,7 @@ commit-confirm 60
 
 Do not `confirm` yet.
 
-From Trusted (still `homelab.local` until Step 6):
+From Trusted:
 
 ```bash
 dig @10.10.10.1 vyos.home.arpa +short
@@ -250,13 +251,16 @@ set service dns forwarding name-server 1.1.1.1
 
 ---
 
-# Step 6 — Optional: Trusted search domain `home.arpa`
+# Step 6 — Trusted search domain `home.arpa`
 
-Do this only after Step 5 is confirmed. It is not required for AdGuard
-or for `dig vyos.home.arpa`. It only makes short names (`ping vyos`)
-work on clients that honor DHCP domain/search.
+Do this after Step 5 is confirmed. Known-good DHCP `domain-name` for
+Trusted is `home.arpa` (`../vyos/commands.txt`). It makes short names
+(`ping vyos`, `ping dev`) work on Trusted clients that honor DHCP
+domain/search. Full names such as `dig vyos.home.arpa` already work
+without it.
 
-Current known-good is `homelab.local`.
+Skip this step when the PRIVATE `domain-name` is already `home.arpa`.
+Apply it when the router still has `homelab.local`:
 
 ```bash
 delete service dhcp-server shared-network-name PRIVATE subnet 10.10.10.0/24 option domain-name 'homelab.local'

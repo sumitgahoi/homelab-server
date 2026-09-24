@@ -31,7 +31,7 @@ is VyOS input, and AdGuard’s DoT is Services→WAN. VLAN 40 stays on
 
 VyOS has one upstream (`10.10.0.4`). DHCP option 6 stays the VLAN
 gateway. AdGuard down → VLANs 10/20/30 lose DNS; VLAN 40 is unchanged.
-Guest/IoT can resolve `home.arpa` if they ask; they get no search domain.
+Trusted DHCP search domain is `home.arpa`. Guest/IoT can resolve `home.arpa` if they ask; they get no search domain.
 
 The AdGuard LXC’s own OS resolvers are `1.1.1.1` / `1.0.0.1`, not VyOS,
 so apt and DoT bootstrap do not depend on the recursor that depends on

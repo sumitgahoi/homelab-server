@@ -53,6 +53,7 @@ VLAN 10 (`proxmox/interfaces`):
 | `10.10.10.1` | VyOS `eth0.10` |
 | `10.10.10.2` | CBS350 |
 | `10.10.10.3` | Proxmox `vmbr0.10` |
+| `10.10.10.10` | dev VM (VM 101) — CURRENT, `dev/` |
 | `10.10.10.99` | admin laptop OOB |
 | `10.10.10.100`–`.250` | DHCP |
 
@@ -104,4 +105,4 @@ Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge act
 
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (PLANNED). Beryl 7 travel router (not deployed): `beryl.md`. India-GW is current in `tailscale-india/`. Do not deploy `tailscale-us`.
+See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (PLANNED). Dev VM is CURRENT (`dev/`). Beryl 7 travel router (not deployed): `beryl.md`. India-GW is current in `tailscale-india/`. Do not deploy `tailscale-us`.

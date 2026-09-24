@@ -1,20 +1,20 @@
 # Operator SSH key
 
-`macbook.pub` is the MacBook key used to log into Proxmox and Linux guests. VyOS has this key in `../vyos/commands.txt` (`disable-password-authentication`).
+`macbook.pub` is the public half of the MacBook's default SSH key. That key logs into Proxmox and Linux guests. VyOS has this key in `../vyos/commands.txt` (`disable-password-authentication`).
 
 If SSH breaks on Proxmox, BMC iKVM.
 
-From this directory:
+From the Mac, on Trusted. `ssh-copy-id` installs the default key:
 
 ```bash
-ssh-copy-id -i macbook.pub root@10.10.10.3
+ssh-copy-id root@10.10.10.3
 ```
 
 ```bash
-ssh-copy-id -i macbook.pub USER@HOST
+ssh-copy-id USER@HOST
 ```
 
-Then copy `disable-passwords.conf` (Proxmox or a Debian/Ubuntu guest):
+Then, from this directory, copy `disable-passwords.conf` (Proxmox or a Debian/Ubuntu guest):
 
 ```bash
 scp disable-passwords.conf root@10.10.10.3:/etc/ssh/sshd_config.d/disable-passwords.conf

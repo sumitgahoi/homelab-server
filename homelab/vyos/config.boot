@@ -415,7 +415,7 @@ service {
             subnet 10.10.10.0/24 {
                 option {
                     default-router "10.10.10.1"
-                    domain-name "homelab.local"
+                    domain-name "home.arpa"
                     name-server "10.10.10.1"
                 }
                 range 0 {
