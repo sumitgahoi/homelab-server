@@ -19,9 +19,14 @@ do not apply `eth1` `dhcpv6` / `autoconf` or `firewall ipv6` in the
 IPv4 steps; use the WAN IPv6 sitting later in this file (firewall
 before a GUA).
 
-PLANNED WireGuard (`wg0` / `wg1` / `wg2`) is
-`../wireguard/wg0.md`, `wg1.md`, and `wg2.md`. Do not mix it into this
-rebuild. Do not create CT 109. Keep CT 108 until `wg2.md` fail-closed tests pass.
+`wg0`, `wg1`, and `wg2` are in `commands.txt` (`../wireguard/`). Do not
+mix a second WireGuard pass into this rebuild. Table 40 is
+`interface wg2`. Do not point it at `10.10.0.5`. NUC `wg-india` is
+`../wireguard/wg2.md` (literal `Endpoint`, no `PostDown`, nft unit).
+Do not create CT 109. Sections 6 and 6b passed. CT 108 stays
+installed until `wg2.md` section 7. Each WireGuard `private-key` in
+`commands.txt` is the word `redacted`; generate a new key on a rebuild
+instead of pasting that word.
 
 The rebuild philosophy is:
 
@@ -397,7 +402,8 @@ set policy route PBR-INDIA ...
 set protocols static table 40 ...
 ```
 
-The intended routing path is:
+`commands.txt` sends table 40 out `wg2`. Do not put `10.10.0.5`
+back. The old India-GW path is rollback only (`../tailscale-india/setup.md`).
 
 ```text
 10.10.40.0/24
@@ -409,16 +415,16 @@ PBR-INDIA
 table 40
        │
        ▼
-10.10.0.5
+wg2
        │
        ▼
-India-GW
+asus-nuc
 ```
 
-Table 40 contains:
+Table 40 in `commands.txt` contains:
 
 ```text
-default → 10.10.0.5
+default → interface wg2
 
 blackhole default
 distance 254
@@ -483,7 +489,7 @@ forward default = drop
 input default = drop
 
 India PBR → table 40
-table 40 → 10.10.0.5
+table 40 → interface wg2
 
 NO India → eth1 NAT
 ```

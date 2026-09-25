@@ -9,7 +9,7 @@ Until Step 5, do not change VyOS. House DNS stays Cloudflare.
 
 ```text
 Trusted / Guest / IoT  →  10.10.x.1  →  VyOS  →  10.10.0.4 AdGuard
-VLAN 40                →  1.1.1.1 via India-GW  (unchanged)
+VLAN 40                →  1.1.1.1 via VyOS wg2  (not this guest)
 ```
 
 IoT still has no Internet (forward default-drop, no IoT→`eth1` accept).

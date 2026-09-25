@@ -1,13 +1,13 @@
-# Tailscale India-GW — CURRENT
+# Tailscale India-GW — installed, not the VLAN 40 path
 
-Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Router known-good: `../vyos/commands.txt`. Rebuild: `setup.md`. US remote access and the **PLANNED** VLAN 40 path (VyOS `wg2`) are `../wireguard/`. This LXC stays CURRENT until `wg2.md` fail-closed tests pass; then retire CT 108. Tailscale on `asus-nuc` stays permanently (travel and remote rescue). `wg2` must not change it.
+Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. VLAN 40 now goes VyOS `wg2` → `asus-nuc` `wg-india` (`../wireguard/wg2.md`). This LXC is still installed at `10.10.0.5`. Table 40 does not point at it. Sections 6 and 6b passed. Retire CT 108 in `wg2.md` section 7 (stop first; destroy later). `../vyos/commands.txt` points table 40 at `wg2`; do not put `10.10.0.5` back. Rebuild of this LXC: `setup.md` (rollback only). Tailscale on `asus-nuc` stays permanently (travel and remote rescue). `wg2` must not change it.
 
 This directory is a **runbook plus design notes**. `setup.md` is the authoritative rebuild procedure. There is intentionally no automation around it.
 
 | Node | Where | IP | Role | State |
 |------|-------|----|------|--------|
 | `asus-nuc` | India (physical) | — | exit node | CURRENT (external) |
-| `tailscale-india` | LXC 108 on `vmbr-svc` | `10.10.0.5` | India-GW: `--exit-node=asus-nuc` only. No advertised routes | CURRENT |
+| `tailscale-india` | LXC 108 on `vmbr-svc` | `10.10.0.5` | Former India-GW: `--exit-node=asus-nuc` only. No advertised routes. Not on the VLAN 40 path | installed |
 
 Tag: `tag:homelab-india-gw`. Gateway `10.10.0.1`. Do not reuse `.2` (UniFi), `.3` (unused), or `.4` (AdGuard). One process cannot advertise a US exit and consume `asus-nuc`.
 
@@ -15,7 +15,7 @@ Do not advertise `10.10.40.0/24` (or other client nets) into the tailnet. India-
 
 ## Packet path
 
-Clients keep default router `10.10.40.1`. VyOS is still the gateway they see.
+Historical. Live VLAN 40 does not follow this. Clients still keep default router `10.10.40.1`. The live path is `../wireguard/wg2.md`.
 
 ```text
 India client 10.10.40.x
@@ -32,6 +32,8 @@ India client 10.10.40.x
 Return traffic is established/related through the same path. Trusted/Guest/Services keep the main default route out `eth1`.
 
 ## Why it fails closed
+
+This is the old CT 108 mechanism, kept for rollback. It is not how VLAN 40 fails closed today. Live fail-closed is table 40 → `wg2` plus the distance-254 blackhole (`../wireguard/wg2.md`).
 
 Positive allow-list, default deny:
 

@@ -2,7 +2,7 @@
 
 As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces` (CURRENT). Pre-cutover host snapshot: `proxmox/interfaces.until-cutover` (archive). Router known-good: `vyos/commands.txt` (rebuild: `vyos/setup.md`). Switch known-good: `cbs350/running-config` (restore: `cbs350/README.md`).
 
-**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1` (IPv4 + IPv6). House ASUS retired. Host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UniFi OS Server + U6+ are live (`unifi.md`). India-GW is live (`tailscale-india/`). `asus-nuc` is the India exit. Client VLANs stay IPv4.
+**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1` (IPv4 + IPv6). House ASUS retired. Host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UniFi OS Server + U6+ are live (`unifi.md`). VLAN 40 egress is VyOS `wg2` to `asus-nuc` (`wireguard/wg2.md`). CT 108 is still installed and is not that path. Client VLANs stay IPv4.
 
 ```text
   Internet ── S33 ────────── nic1 ── vmbr1 ── VyOS eth1
@@ -19,9 +19,9 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
   vmbr-svc (no NIC) ── VyOS eth2  10.10.0.1
                    ├── UniFi OS       10.10.0.2
                    ├── AdGuard        10.10.0.4    ← CURRENT (CT 110)
-                   └── India-GW       10.10.0.5    ← CURRENT (CT 108)
+                   └── India-GW       10.10.0.5    ← installed, not the VLAN 40 path (CT 108)
 
-  wg0 live; wg1 / wg2 not deployed (see wireguard/)
+  wg0, wg1, and wg2 live (see wireguard/; VLAN 40 is wg2)
 ```
 
 | Index | NIC | Bridge | VM slot | MAC | VyOS | Role |
@@ -65,9 +65,9 @@ Services (`vmbr-svc`, not a VLAN):
 | `10.10.0.2` | UniFi OS Server (LXC 107) |
 | `10.10.0.3` | unused (do not assign; was a US Tailscale guest) |
 | `10.10.0.4` | AdGuard (CT 110) — CURRENT |
-| `10.10.0.5` | `tailscale-india` (India-GW, CT 108) — CURRENT |
+| `10.10.0.5` | `tailscale-india` (CT 108) — installed, not the VLAN 40 path |
 
-AdGuard rebuild: `adguard/setup.md`. US VPN is on VyOS, not Services: `wireguard/` (PLANNED). India-GW rebuild: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
+AdGuard rebuild: `adguard/setup.md`. US VPN is on VyOS, not Services: `wireguard/` (`wg0` and `wg1` live). VLAN 40 path: `wireguard/wg2.md`. CT 108 rebuild, rollback only: `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
 
 ## CBS350
 
@@ -105,4 +105,4 @@ Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge act
 
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (PLANNED). Dev VM is CURRENT (`dev/`). Beryl 7 travel router (not deployed): `beryl.md`. India-GW is current in `tailscale-india/`. Do not deploy `tailscale-us`.
+See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (`wg0`, `wg1`, and `wg2` live). Dev VM is CURRENT (`dev/`). Beryl 7 travel router (not deployed): `beryl.md`. CT 108 is installed and is not the VLAN 40 path (`tailscale-india/`). Do not deploy `tailscale-us`.

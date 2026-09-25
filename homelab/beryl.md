@@ -1,6 +1,6 @@
 # Beryl 7 travel router — PLANNED / design notes
 
-Not deployed. Do not treat this file as current infrastructure. Do not stretch home VLANs or home subnets onto the Beryl. Invariants for the house: `REQUIREMENTS.md`. India-GW as-built: `tailscale-india/`. US remote access: `wireguard/` (PLANNED).
+Not deployed. Do not treat this file as current infrastructure. Do not stretch home VLANs or home subnets onto the Beryl. Invariants for the house: `REQUIREMENTS.md`. House VLAN 40 is VyOS `wg2` (`wireguard/wg2.md`). CT 108 is still installed and is not that path. US remote access: `wireguard/` (`wg0` and `wg1` live).
 
 This is a **design record**, not a rebuild runbook. There is no `setup.md` yet.
 
@@ -17,9 +17,9 @@ Phone / Mac / later Beryl
     └─ Tailscale → asus-nuc     India Internet (CURRENT)
 
 Home VLAN 40 (CURRENT)
-    → VyOS PBR → india-gw 10.10.0.5 → Tailscale → asus-nuc
-Home VLAN 40 (PLANNED VyOS `wg2`)
     → VyOS PBR → wg2 → asus-nuc
+Home VLAN 40 (CT 108, installed, not the path)
+    → was VyOS PBR → india-gw 10.10.0.5 → Tailscale → asus-nuc
 ```
 
 The Beryl is a **later** sitting. Do not reshape VyOS, VLANs, or Services for it. It may consume the house `wg0` / `wg1` listeners when that sitting happens.
@@ -53,10 +53,10 @@ Firmware notes worth keeping (4.9.0, 2026-07-07): Main / Guest / IoT are the thr
 10.10.0.2   UniFi
 10.10.0.3   unused
 10.10.0.4   AdGuard
-10.10.0.5   india-gw         CURRENT   VLAN 40 only; Tailscale to asus-nuc
-10.10.80.1  wg0 private      PLANNED   Trusted
-10.10.81.1  wg1 guest        PLANNED   Internet only
-10.10.82.1  wg2              PLANNED   VLAN 40 → asus-nuc (.2)
+10.10.0.5   india-gw         installed, not the VLAN 40 path
+10.10.80.1  wg0 private      live      Trusted
+10.10.81.1  wg1 guest        live      Internet only
+10.10.82.1  wg2              live      VLAN 40 → asus-nuc (.2)
 ```
 
 No `vpn-us-guest` LXC. No `tailscale-us`. Guest VPN is `wg1` on VyOS.

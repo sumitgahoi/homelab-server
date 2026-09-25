@@ -1,6 +1,6 @@
 # Operator SSH key
 
-`macbook.pub` is the public half of the MacBook's default SSH key. That key logs into Proxmox and Linux guests. VyOS has this key in `../vyos/commands.txt` (`disable-password-authentication`).
+`macbook.pub` is the public half of the MacBook's default SSH key. That key logs into Proxmox and Linux guests. VyOS has this key in `../vyos/commands.txt` (`disable-password-authentication`). The same key is in `authorized_keys` for `sumit` on `asus-nuc`. From Trusted, `ssh sumit@10.10.82.2` uses VyOS `wg2` (`../wireguard/wg2.md`). Password authentication on the NUC stays off. That session needs the tunnel. Tailscale is how you reach the NUC when `wg-india` is down.
 
 If SSH breaks on Proxmox, BMC iKVM.
 

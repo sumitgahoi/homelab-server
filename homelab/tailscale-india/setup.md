@@ -1,8 +1,13 @@
 # India Gateway Setup
 
+CT 108 is still installed. It is not the VLAN 40 path. Live egress is
+VyOS `wg2` (`../wireguard/wg2.md`). Use this file only to rebuild the
+LXC for rollback. Do not apply Step 7 onto a router whose table 40
+already uses `wg2`. That step points VLAN 40 back at `10.10.0.5`.
+
 This document describes how to rebuild the `tailscale-india` gateway from scratch.
 
-The gateway provides Internet access for the India Wi-Fi / VLAN 40 through
+The gateway used to provide Internet access for the India Wi-Fi / VLAN 40 through
 a Tailscale exit node physically located in India.
 
 The philosophy of this document is deliberately simple:
@@ -685,9 +690,13 @@ This happens before Tailscale gets an opportunity to use table 52.
 
 # Step 7 — Configure VyOS for India Routing
 
+Do not apply this step while VLAN 40 uses `wg2`. It is the rollback
+path only (`table 40` next-hop `10.10.0.5`, forward rule 400 out
+`eth2`).
+
 The Linux gateway is now ready.
 
-VyOS must send VLAN40 traffic to it.
+On a rollback, VyOS must send VLAN40 traffic to it.
 
 The desired path is:
 

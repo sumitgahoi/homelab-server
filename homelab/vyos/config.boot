@@ -12,20 +12,26 @@ firewall {
             interface "eth0.30"
             interface "eth0.40"
             interface "eth2"
+            interface "wg0"
+            interface "wg1"
         }
         network-group NET-CLIENT {
             network "10.10.10.0/24"
             network "10.10.20.0/24"
             network "10.10.30.0/24"
+            network "10.10.80.0/24"
+            network "10.10.81.0/24"
         }
         network-group NET-GUEST {
             network "10.10.20.0/24"
+            network "10.10.81.0/24"
         }
         network-group NET-INDIA {
             network "10.10.40.0/24"
         }
         network-group NET-PRIVATE {
             network "10.10.10.0/24"
+            network "10.10.80.0/24"
         }
         network-group NET-RFC1918 {
             network "10.0.0.0/8"
@@ -40,6 +46,42 @@ firewall {
         forward {
             filter {
                 default-action "drop"
+                rule 5 {
+                    action "drop"
+                    description "client sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-CLIENT"
+                        }
+                    }
+                }
+                rule 6 {
+                    action "drop"
+                    description "services sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-SERVICES"
+                        }
+                    }
+                }
+                rule 7 {
+                    action "drop"
+                    description "india sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-INDIA"
+                        }
+                    }
+                }
                 rule 10 {
                     action "accept"
                     state "established"
@@ -94,9 +136,9 @@ firewall {
                 }
                 rule 400 {
                     action "accept"
-                    description "India Internet via India-GW"
+                    description "India Internet via wg2"
                     outbound-interface {
-                        name "eth2"
+                        name "wg2"
                     }
                     source {
                         group {
@@ -109,6 +151,42 @@ firewall {
         input {
             filter {
                 default-action "drop"
+                rule 5 {
+                    action "drop"
+                    description "client sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-CLIENT"
+                        }
+                    }
+                }
+                rule 6 {
+                    action "drop"
+                    description "services sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-SERVICES"
+                        }
+                    }
+                }
+                rule 7 {
+                    action "drop"
+                    description "india sources arriving on wg2"
+                    inbound-interface {
+                        name "wg2"
+                    }
+                    source {
+                        group {
+                            network-group "NET-INDIA"
+                        }
+                    }
+                }
                 rule 10 {
                     action "accept"
                     state "established"
@@ -141,6 +219,39 @@ firewall {
                     }
                     inbound-interface {
                         group "IF-DHCP-SERVER"
+                    }
+                    protocol "udp"
+                }
+                rule 50 {
+                    action "accept"
+                    description "WireGuard private"
+                    destination {
+                        port "51820"
+                    }
+                    inbound-interface {
+                        name "eth1"
+                    }
+                    protocol "udp"
+                }
+                rule 51 {
+                    action "accept"
+                    description "WireGuard guest"
+                    destination {
+                        port "51821"
+                    }
+                    inbound-interface {
+                        name "eth1"
+                    }
+                    protocol "udp"
+                }
+                rule 52 {
+                    action "accept"
+                    description "WireGuard India"
+                    destination {
+                        port "51822"
+                    }
+                    inbound-interface {
+                        name "eth1"
                     }
                     protocol "udp"
                 }
@@ -208,6 +319,39 @@ firewall {
                         name "eth1"
                     }
                     protocol "icmpv6"
+                }
+                rule 50 {
+                    action "accept"
+                    description "WireGuard private"
+                    destination {
+                        port "51820"
+                    }
+                    inbound-interface {
+                        name "eth1"
+                    }
+                    protocol "udp"
+                }
+                rule 51 {
+                    action "accept"
+                    description "WireGuard guest"
+                    destination {
+                        port "51821"
+                    }
+                    inbound-interface {
+                        name "eth1"
+                    }
+                    protocol "udp"
+                }
+                rule 52 {
+                    action "accept"
+                    description "WireGuard India"
+                    destination {
+                        port "51822"
+                    }
+                    inbound-interface {
+                        name "eth1"
+                    }
+                    protocol "udp"
                 }
             }
         }
@@ -300,6 +444,57 @@ interfaces {
             tso
         }
     }
+    wireguard wg0 {
+        address "10.10.80.1/24"
+        description "VPN private (Trusted)"
+        ipv6 {
+            address {
+                no-default-link-local
+            }
+            disable-forwarding
+        }
+        peer sumit-iphone {
+            allowed-ips "10.10.80.2/32"
+            public-key "bUNM2TLBsIb0BzQqkiuUwd/ETcCmOuVfWux1HunCqVY="
+        }
+        port "51820"
+        private-key "redacted"
+    }
+    wireguard wg1 {
+        address "10.10.81.1/24"
+        description "VPN guest"
+        ipv6 {
+            address {
+                no-default-link-local
+            }
+            disable-forwarding
+        }
+        peer sumit-iphone {
+            allowed-ips "10.10.81.2/32"
+            public-key "C3CNbgq33hVnGtn4E6MwaTiOCns/4xSvSLSQDD8kFSM="
+        }
+        port "51821"
+        private-key "redacted"
+    }
+    wireguard wg2 {
+        address "10.10.82.1/30"
+        description "India site-to-site"
+        ip {
+            adjust-mss "1380"
+        }
+        ipv6 {
+            address {
+                no-default-link-local
+            }
+            disable-forwarding
+        }
+        peer asus-nuc {
+            allowed-ips "0.0.0.0/0"
+            public-key "OGvgDsSGw2D3Y+O+DPL7U9TYGfUSPfG1y9kBIlH3jmk="
+        }
+        port "51822"
+        private-key "redacted"
+    }
 }
 nat {
     source {
@@ -310,6 +505,30 @@ nat {
             }
             source {
                 address "10.10.0.0/24"
+            }
+            translation {
+                address "masquerade"
+            }
+        }
+        rule 80 {
+            description "NAT WG private to WAN"
+            outbound-interface {
+                name "eth1"
+            }
+            source {
+                address "10.10.80.0/24"
+            }
+            translation {
+                address "masquerade"
+            }
+        }
+        rule 81 {
+            description "NAT WG guest to WAN"
+            outbound-interface {
+                name "eth1"
+            }
+            source {
+                address "10.10.81.0/24"
             }
             translation {
                 address "masquerade"
@@ -363,7 +582,7 @@ protocols {
                 blackhole {
                     distance "254"
                 }
-                next-hop 10.10.0.5 {
+                interface wg2 {
                 }
             }
         }
@@ -431,9 +650,13 @@ service {
             allow-from "10.10.10.0/24"
             allow-from "10.10.20.0/24"
             allow-from "10.10.30.0/24"
+            allow-from "10.10.80.0/24"
+            allow-from "10.10.81.0/24"
             listen-address "10.10.10.1"
             listen-address "10.10.20.1"
             listen-address "10.10.30.1"
+            listen-address "10.10.80.1"
+            listen-address "10.10.81.1"
             name-server 10.10.0.4 {
             }
         }

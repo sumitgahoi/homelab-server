@@ -1,7 +1,10 @@
-# wg1 — Guest WireGuard (PLANNED)
+# wg1 — Guest WireGuard
 
-Not deployed. Dialect: rolling `2026.09.16-0028`. Do not write these
-lines into `../vyos/commands.txt` until they are live and exported.
+Live. `10.10.81.1/24` is on the router, and `10.10.81.0/24` is in
+`NET-CLIENT` and `NET-GUEST`. Peer name is `sumit-iphone`,
+`10.10.81.2/32`. That is the same peer name as `wg0` and a different
+public key. Dialect: rolling `2026.09.16-0028`. The export is in
+`../vyos/commands.txt`; `private-key` there is `redacted`.
 Do not create CT 109. Do not run WireGuard on a Services guest.
 
 `wg0` is `wg0.md` (live). India is `wg2.md`. Design: `README.md`.
@@ -36,8 +39,8 @@ that address down.
 
 If IPv4 is not public and `eth1` has no GUA, stop. No VPS.
 
-`Endpoint` is the A name `YOUR_DDNS`. A spare AAAA profile uses
-`YOUR_DDNS6` (`README.md`). `firewall ipv6` default-drop must already
+`Endpoint` is the A name `sumitgahoi.me`. A spare AAAA profile uses
+`v6.sumitgahoi.me` (`README.md`). `firewall ipv6` default-drop must already
 exist (`../vyos/setup.md`).
 
 ---
@@ -86,7 +89,7 @@ DNS = 10.10.81.1
 
 [Peer]
 PublicKey = VYOS_WG1_PUBLIC
-Endpoint = YOUR_DDNS:51821
+Endpoint = sumitgahoi.me:51821
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
 ```
@@ -94,12 +97,12 @@ PersistentKeepalive = 25
 No `::/0`. Then:
 
 ```text
-set interfaces wireguard wg1 peer guest-phone public-key 'CLIENT_PUBLIC'
-set interfaces wireguard wg1 peer guest-phone allowed-ips '10.10.81.2/32'
-show interfaces wireguard wg1 peer guest-phone
+set interfaces wireguard wg1 peer sumit-iphone public-key 'CLIENT_PUBLIC'
+set interfaces wireguard wg1 peer sumit-iphone allowed-ips '10.10.81.2/32'
+show interfaces wireguard wg1 peer sumit-iphone
 ```
 
-Expected: peer `guest-phone`, `allowed-ips 10.10.81.2/32`, client
+Expected: peer `sumit-iphone`, `allowed-ips 10.10.81.2/32`, client
 public key. Not the VyOS private key.
 
 ```text

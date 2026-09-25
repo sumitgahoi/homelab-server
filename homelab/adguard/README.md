@@ -16,18 +16,18 @@ Trusted / Guest / IoT
          ├─ *.home.arpa
          └─ DoT (US WAN via Services NAT)
 
-Remote WireGuard (later, `../wireguard/`)
+Remote WireGuard (`../wireguard/wg0.md` and `wg1.md`, both live)
     → 10.10.80.1 or 10.10.81.1 (VyOS recursor)
       not 10.10.0.4
 
 VLAN 40
-    → 1.1.1.1 via India-GW
+    → 1.1.1.1 via VyOS wg2
 ```
 
 VyOS queries AdGuard as `10.10.0.1` (AdGuard Allowed clients). VLANs
 10/20/30 do not query `10.10.0.4` themselves. IoT still has no Internet; DNS to `10.10.30.1`
 is VyOS input, and AdGuard’s DoT is Services→WAN. VLAN 40 stays on
-`1.1.1.1` via India-GW.
+`1.1.1.1` via `wg2`.
 
 VyOS has one upstream (`10.10.0.4`). DHCP option 6 stays the VLAN
 gateway. AdGuard down → VLANs 10/20/30 lose DNS; VLAN 40 is unchanged.

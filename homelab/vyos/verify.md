@@ -40,7 +40,7 @@ Expect:
 - default route via eth1 (main table; Trusted/Guest/Services)
 - connected routes for all four VLANs
 - connected route for Services
-- table 40 default via 10.10.0.5 (plus higher-distance blackhole)
+- table 40 default via `wg2` (plus higher-distance blackhole)
 
 ## 5. Firewall
 
@@ -52,9 +52,9 @@ Expect forward:
 - Guest → eth1 → accept
 - Services → eth1 → accept
 - India dest RFC1918 → drop
-- India → eth2 → accept
+- India → `wg2` → accept (rule 400)
 - default → drop
 
 India must not appear in source NAT out eth1. DNS forwarding must not listen on 10.10.40.1.
 
-India path tests: `../tailscale-india/setup.md`. India-GW (CT 108) is part of the known-good path.
+India path tests: `../wireguard/wg2.md`. CT 108 is still installed and is not the path. `ping 10.10.82.1` from the NUC is expected to fail.

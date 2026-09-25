@@ -54,6 +54,6 @@ On the VM: Git, Docker Engine (so Dev Containers can use the Docker socket), `qe
 
 Language toolchains stay in the project. Each project under `~/code/` that needs one owns `~/code/<project>/.devcontainer/`. This runbook does not create a project.
 
-The guest is IPv4 only, like the other VLAN clients. DNS is `10.10.10.1` (VyOS, which forwards to AdGuard). Do not point the VM at `10.10.0.4`. No Tailscale on this VM. Away from home, reach it later through Trusted WireGuard (`wg0`, PLANNED).
+The guest is IPv4 only, like the other VLAN clients. DNS is `10.10.10.1` (VyOS, which forwards to AdGuard). Do not point the VM at `10.10.0.4`. No Tailscale on this VM. Away from home, reach it through Trusted WireGuard (`wg0`, live).
 
 AdGuard rewrite `dev.home.arpa` → `10.10.10.10`. The Mac's SSH alias uses that name (`setup.md`).

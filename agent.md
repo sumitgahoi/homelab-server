@@ -112,7 +112,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 
 ## As-built (live)
 
-WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). Known-good CLI is `vyos/commands.txt`. VyOS `wg0` is live (`wireguard/wg0.md`). `wg1` and `wg2` are not. Dev VM (VM 101, `10.10.10.10`) is live (`dev/`). Do not create CT 109.
+WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. VLAN 40 egress is VyOS `wg2` to `asus-nuc` (`wireguard/wg2.md`). CT 108 (`10.10.0.5`) is still installed and is not that path. `vyos/commands.txt` matches the router (WireGuard private keys redacted). AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). VyOS `wg0`, `wg1`, and `wg2` are live (`wireguard/`). Dev VM (VM 101, `10.10.10.10`) is live (`dev/`). Do not create CT 109.
 
 ## Layout
 
