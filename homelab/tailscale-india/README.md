@@ -1,6 +1,6 @@
 # Tailscale India-GW — CURRENT
 
-Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Router known-good: `../vyos/commands.txt`. Rebuild: `setup.md`. US remote access and the **PLANNED** VLAN 40 path (`wg-india`) are `../wireguard/`. This LXC stays CURRENT until `wg-india` fail-closed tests pass; then retire CT 108. Tailscale remains on `asus-nuc` for travel.
+Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Router known-good: `../vyos/commands.txt`. Rebuild: `setup.md`. US remote access and the **PLANNED** VLAN 40 path (VyOS `wg2`) are `../wireguard/`. This LXC stays CURRENT until `wg2.md` fail-closed tests pass; then retire CT 108. Tailscale on `asus-nuc` stays permanently (travel and remote rescue). `wg2` must not change it.
 
 This directory is a **runbook plus design notes**. `setup.md` is the authoritative rebuild procedure. There is intentionally no automation around it.
 

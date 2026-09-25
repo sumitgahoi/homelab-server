@@ -22,7 +22,7 @@ Optional BIOS: PL1 = PL2 = 65 W for 24/7. Apt: pve-no-subscription.
 | tailscale-india | LXC 108 | 1 | 512 MiB | `vmbr-svc` + TUN | `10.10.0.5` (CURRENT) |
 | dev | VM 101 | 4 | 16384 MiB | `vmbr0` tag 10 | `10.10.10.10` (CURRENT) |
 
-Create VM 100: `vyos/install.md`. Then configure from `vyos/setup.md` using `vyos/commands.txt`. Locked NICs/MACs: `README.md`. UniFi OS Server: `unifi.md`. India-GW: `tailscale-india/setup.md`. AdGuard: `adguard/setup.md` (CURRENT). Dev VM: `dev/setup.md` (CURRENT). WireGuard: `wireguard/setup.md` (PLANNED). Do not create CT 109.
+Create VM 100: `vyos/install.md`. Then configure from `vyos/setup.md` using `vyos/commands.txt`. Locked NICs/MACs: `README.md`. UniFi OS Server: `unifi.md`. India-GW: `tailscale-india/setup.md`. AdGuard: `adguard/setup.md` (CURRENT). Dev VM: `dev/setup.md` (CURRENT). WireGuard: `wireguard/wg0.md`, `wg1.md`, `wg2.md` (PLANNED). Do not create CT 109.
 
 ## VyOS down
 

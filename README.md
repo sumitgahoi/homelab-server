@@ -29,8 +29,10 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `homelab/tailscale-india/README.md` | India-GW design and fail-closed notes |
 | `homelab/tailscale-india/setup.md` | How a human rebuilds India-GW (CT 108) |
 | `homelab/wireguard.md` | Pointer to the WireGuard runbook |
-| `homelab/wireguard/README.md` | WireGuard design: wg0/wg1, wg-india (PLANNED) |
-| `homelab/wireguard/setup.md` | How a human applies those parts |
+| `homelab/wireguard/README.md` | WireGuard design: `wg0` live; `wg1` / `wg2` not deployed |
+| `homelab/wireguard/wg0.md` | How a human applies Trusted WireGuard |
+| `homelab/wireguard/wg1.md` | How a human applies Guest WireGuard |
+| `homelab/wireguard/wg2.md` | How a human applies VLAN 40 → `asus-nuc` |
 | `homelab/tailscale-us/README.md` | US Tailscale guest — will not deploy |
 | `homelab/adguard/README.md` | AdGuard design (CURRENT) |
 | `homelab/adguard/setup.md` | How a human creates or rebuilds AdGuard (CT 110) and points VyOS at it |
@@ -40,6 +42,6 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 
-**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). India-GW is live (`homelab/tailscale-india/setup.md`). AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). Known-good CLI is `homelab/vyos/commands.txt`. WireGuard on VyOS is PLANNED (`homelab/wireguard/`). Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
+**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). India-GW is live (`homelab/tailscale-india/setup.md`). AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). Known-good CLI is `homelab/vyos/commands.txt`. VyOS `wg0` is live (`homelab/wireguard/wg0.md`). `wg1` and `wg2` are not. Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
 
 Do not introduce Ansible, Terraform, generators, deployment scripts, or CI/CD for this homelab. Copy host interfaces from `homelab/proxmox/README.md`. Rebuild or change VyOS from `homelab/vyos/setup.md`. Operator SSH key: `homelab/ssh/README.md`.

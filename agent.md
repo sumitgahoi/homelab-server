@@ -97,7 +97,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 | UniFi as-built | `homelab/unifi.md` |
 | India-GW rebuild | `homelab/tailscale-india/setup.md` |
 | India-GW design notes | `homelab/tailscale-india/README.md` |
-| WireGuard rebuild (wg0/wg1, wg-india) | `homelab/wireguard/setup.md` |
+| WireGuard rebuild (`wg0`, `wg1`, `wg2`) | `homelab/wireguard/wg0.md`, `wg1.md`, `wg2.md` |
 | WireGuard design notes | `homelab/wireguard/README.md` |
 | US Tailscale (will not deploy) | `homelab/tailscale-us/README.md` |
 | AdGuard rebuild | `homelab/adguard/setup.md` |
@@ -112,7 +112,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 
 ## As-built (live)
 
-WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). Known-good CLI is `vyos/commands.txt`. WireGuard on VyOS is PLANNED (`wireguard/`). Dev VM (VM 101, `10.10.10.10`) is live (`dev/`). Do not create CT 109.
+WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. India-GW (CT 108, `10.10.0.5`) is live. AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). Known-good CLI is `vyos/commands.txt`. VyOS `wg0` is live (`wireguard/wg0.md`). `wg1` and `wg2` are not. Dev VM (VM 101, `10.10.10.10`) is live (`dev/`). Do not create CT 109.
 
 ## Layout
 

@@ -18,8 +18,8 @@ Phone / Mac / later Beryl
 
 Home VLAN 40 (CURRENT)
     → VyOS PBR → india-gw 10.10.0.5 → Tailscale → asus-nuc
-Home VLAN 40 (PLANNED `wg-india`)
-    → VyOS PBR → wg-india → asus-nuc
+Home VLAN 40 (PLANNED VyOS `wg2`)
+    → VyOS PBR → wg2 → asus-nuc
 ```
 
 The Beryl is a **later** sitting. Do not reshape VyOS, VLANs, or Services for it. It may consume the house `wg0` / `wg1` listeners when that sitting happens.
@@ -56,7 +56,7 @@ Firmware notes worth keeping (4.9.0, 2026-07-07): Main / Guest / IoT are the thr
 10.10.0.5   india-gw         CURRENT   VLAN 40 only; Tailscale to asus-nuc
 10.10.80.1  wg0 private      PLANNED   Trusted
 10.10.81.1  wg1 guest        PLANNED   Internet only
-10.10.82.1  wg-india         PLANNED   VLAN 40 → asus-nuc (.2)
+10.10.82.1  wg2              PLANNED   VLAN 40 → asus-nuc (.2)
 ```
 
 No `vpn-us-guest` LXC. No `tailscale-us`. Guest VPN is `wg1` on VyOS.

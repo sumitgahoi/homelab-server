@@ -21,7 +21,7 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
                    ├── AdGuard        10.10.0.4    ← CURRENT (CT 110)
                    └── India-GW       10.10.0.5    ← CURRENT (CT 108)
 
-  PLANNED: VyOS wg0 / wg1 / wg-india (see wireguard/)
+  wg0 live; wg1 / wg2 not deployed (see wireguard/)
 ```
 
 | Index | NIC | Bridge | VM slot | MAC | VyOS | Role |

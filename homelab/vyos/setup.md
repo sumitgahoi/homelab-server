@@ -19,9 +19,9 @@ do not apply `eth1` `dhcpv6` / `autoconf` or `firewall ipv6` in the
 IPv4 steps; use the WAN IPv6 sitting later in this file (firewall
 before a GUA).
 
-PLANNED WireGuard (`wg0` / `wg1` / `wg-india`) is
-`../wireguard/setup.md`. Do not mix it into this
-rebuild. Do not create CT 109. Keep CT 108 until `wg-india` Part C.6.
+PLANNED WireGuard (`wg0` / `wg1` / `wg2`) is
+`../wireguard/wg0.md`, `wg1.md`, and `wg2.md`. Do not mix it into this
+rebuild. Do not create CT 109. Keep CT 108 until `wg2.md` fail-closed tests pass.
 
 The rebuild philosophy is:
 
@@ -657,7 +657,7 @@ Commit
 Live on the router: IPv6 on the WAN only. Clients stay IPv4. These
 lines are in `commands.txt`. On a rebuild, apply this sitting (not
 mixed into the IPv4 steps) so the firewall exists before a GUA.
-UDP `51820`–`51822` stays in `../wireguard/setup.md`.
+UDP `51820`–`51822` stays in `../wireguard/wg0.md`, `wg1.md`, and `wg2.md`.
 
 Do the firewall **before** `eth1` has a GUA on a fresh box. After every
 `commit-confirm`, `confirm` + `save` **before** the next section.
