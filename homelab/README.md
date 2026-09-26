@@ -1,8 +1,6 @@
 # Homelab topology
 
-As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host interfaces: `proxmox/interfaces` (CURRENT). Pre-cutover host snapshot: `proxmox/interfaces.until-cutover` (archive). Router known-good: `vyos/commands.txt` (rebuild: `vyos/setup.md`). Switch known-good: `cbs350/running-config` (restore: `cbs350/README.md`).
-
-**As-built:** LAN = CBS350 + `vmbr0`. WAN = S33 2.5G → `nic1` / `vmbr1` → VyOS `eth1` (IPv4 + IPv6). House ASUS retired. Host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UniFi OS Server + U6+ are live (`unifi.md`). VLAN 40 egress is VyOS `wg2` to `asus-nuc` (`wireguard/wg2.md`). CT 108 is deprecated and is not that path. Client VLANs stay IPv4.
+As-built wiring and addressing. Behavior: `REQUIREMENTS.md`.
 
 ```text
   Internet ── S33 ────────── nic1 ── vmbr1 ── VyOS eth1
@@ -18,8 +16,8 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
   vmbr1 ── no host IP
   vmbr-svc (no NIC) ── VyOS eth2  10.10.0.1
                    ├── UniFi OS       10.10.0.2
-                   ├── AdGuard        10.10.0.4    ← CURRENT (CT 110)
-                   └── India-GW       10.10.0.5    ← DEPRECATED (CT 108; stop, keep the disk)
+                   ├── AdGuard        10.10.0.4    (CT 110)
+                   └── India-GW       10.10.0.5    ← DEPRECATED (CT 108)
 
   wg0, wg1, and wg2 live (see wireguard/; VLAN 40 is wg2)
 ```
@@ -30,7 +28,7 @@ As-built wiring and addressing. Required behavior: `REQUIREMENTS.md`. Host inter
 | 1 | `nic1` | `vmbr1` | `net1` | `02:00:00:00:00:01` | `eth1` | WAN (no host IP) |
 | 2 | — | `vmbr-svc` | `net2` | `02:00:00:00:00:02` | `eth2` | Services `10.10.0.1/24` |
 
-MACs are set when you create the VM. Do not delete/re-add guest NICs. BMC = onboard Realtek 1G (AST2600), not OS networking.
+BMC is the onboard Realtek 1G (AST2600), not an OS NIC. Guest NIC MACs: `vyos/install.md`.
 
 ## Networks
 
@@ -42,7 +40,7 @@ MACs are set when you create the VM. Do not delete/re-add guest NICs. BMC = onbo
 | India | 40 | `10.10.40.0/24` | `10.10.40.1` |
 | Services | — | `10.10.0.0/24` | `10.10.0.1` |
 
-Trunks allow 10/20/30/40. DHCP `.100`–`.250` on the four client VLANs. Policy: `REQUIREMENTS.md`. Wi-Fi: `unifi.md`.
+Trunks allow 10/20/30/40. Policy: `REQUIREMENTS.md`. Wi-Fi: `unifi.md`. DHCP pools: `vyos/setup.md`.
 
 ## Addresses
 
@@ -53,9 +51,8 @@ VLAN 10 (`proxmox/interfaces`):
 | `10.10.10.1` | VyOS `eth0.10` |
 | `10.10.10.2` | CBS350 |
 | `10.10.10.3` | Proxmox `vmbr0.10` |
-| `10.10.10.10` | dev VM (VM 101) — CURRENT, `dev/` |
+| `10.10.10.10` | dev VM (VM 101), `dev/` |
 | `10.10.10.99` | admin laptop OOB |
-| `10.10.10.100`–`.250` | DHCP |
 
 Services (`vmbr-svc`, not a VLAN):
 
@@ -63,17 +60,15 @@ Services (`vmbr-svc`, not a VLAN):
 |---------|--------|
 | `10.10.0.1` | VyOS `eth2` |
 | `10.10.0.2` | UniFi OS Server (LXC 107) |
-| `10.10.0.3` | unused (do not assign; was a US Tailscale guest) |
-| `10.10.0.4` | AdGuard (CT 110) — CURRENT |
+| `10.10.0.3` | unused |
+| `10.10.0.4` | AdGuard (CT 110) |
 | `10.10.0.5` | `tailscale-india` (CT 108) — DEPRECATED; reserved until destroy |
 
-AdGuard rebuild: `adguard/setup.md`. US VPN is on VyOS, not Services: `wireguard/` (`wg0` and `wg1` live). VLAN 40 path: `wireguard/wg2.md`. CT 108 is deprecated; the Tailscale procedure stays at `tailscale-india/setup.md`. `asus-nuc` is not on this subnet.
+`asus-nuc` is not on this subnet. WireGuard: `wireguard/`.
 
 ## CBS350
 
-Known-good snapshot: `cbs350/running-config`. Restore from factory: `cbs350/README.md`. Duplicate running-config to startup-config after the file is on the switch.
-
-Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fall to VLAN 1. Live gear may still have leftover VLAN 99 (deferred strip).
+Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fall to VLAN 1. Live gear may still have leftover VLAN 99 (Still ahead). Switch restore: `cbs350/README.md`.
 
 | Port | Mode | VLAN | Use |
 |------|------|------|-----|
@@ -90,7 +85,7 @@ Mgmt `10.10.10.2/24`, gw `10.10.10.1`. No SVIs on 20/30/40. Unassigned ports fal
 | 23–24 | access | 40 | India |
 | SFP 1–4 | shutdown | — | unused |
 
-Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. VLAN 1 has no SVI; factory `192.168.1.254` is removed when Git `running-config` is restored.
+Guest has no wired port (wireless-only). VLAN 1 has no SVI.
 
 ## Recovery
 
@@ -101,8 +96,12 @@ Guest has no wired port (wireless-only). Port 12 is recovery when VyOS is down. 
 | 2b | switch dead | laptop ↔ `nic0`, VLAN 10 |
 | 3 / BMC | no network / OS dead | iKVM |
 
-Do not use the Proxmox Network UI Apply button for host bridges. Host-bridge activation is manual (`ifreload -a`); see `proxmox/README.md`.
-
 ## Still ahead
 
-See `REQUIREMENTS.md` (PLANNED / DEFERRED). WAN IPv6 on `eth1` only is CURRENT (`vyos/setup.md`). AdGuard is CURRENT (`adguard/`). WireGuard: `wireguard/` (`wg0`, `wg1`, and `wg2` live). Dev VM is CURRENT (`dev/`). Beryl 7 travel router (not deployed): `beryl.md`. CT 108 is deprecated (`tailscale-india/`). Stop it; keep the disk. Do not deploy `tailscale-us`.
+| Item | Notes |
+|------|--------|
+| Camera VLAN | Not designed. No VLAN id yet |
+| NAS | `10.10.10.4` on CBS350 port 4 |
+| VLAN 99 | Strip leftovers on the live switch if any remain |
+| Beryl 7 | Not deployed. `beryl.md` |
+| CT 108 | Stop and keep the disk (`wireguard/wg2.md` section 7). Destroy later; `10.10.0.5` stays reserved until then (`tailscale-india/`) |

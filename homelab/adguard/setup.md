@@ -22,7 +22,7 @@ accept except out `eth1`.
 10.10.0.4    adguard (this guest)
 ```
 
-Do not use `.2` (UniFi), `.3` (reserved), or `.5` (deprecated CT 108; reserved until destroy).
+Do not use `.2` (UniFi) or `.5` (CT 108, reserved until destroy). `.3` is unused.
 
 ---
 

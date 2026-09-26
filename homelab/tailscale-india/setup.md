@@ -4,8 +4,8 @@ CT 108 is deprecated. Live VLAN 40 egress is VyOS `wg2`
 (`../wireguard/wg2.md`). Do not apply this file to the live router.
 
 Keep it. It is how a human rebuilds the Tailscale India path if that
-design is chosen again (`README.md`, “If Tailscale carries VLAN 40
-again”). That choice changes `../REQUIREMENTS.md` first. Step 7 points
+design is chosen again (`README.md`). That choice changes
+`../REQUIREMENTS.md` first. Step 7 points
 VLAN 40 at `10.10.0.5` and must not be applied while table 40 uses
 `wg2`.
 

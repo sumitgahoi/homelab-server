@@ -1,48 +1,12 @@
 # House
 
-Source of truth for networking, home theatre, and future gadgets.
+Homelab, home theatre, and the rack. How this repo is applied: `agent.md`.
 
-This repository is a **human-executable runbook**, not an automation system. Git records the known-good state and the procedure used to construct it. A human applies it, then verifies.
-
-One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**. Do not mix them.
-
-| Path | What |
-|------|------|
-| `agent.md` | How coding agents must work (runbook philosophy + pre-change procedure) |
-| `CLAUDE.md` | Claude Code entry point → `agent.md` |
-| `inventory.md` | Physical hardware catalog |
-| `homelab/REQUIREMENTS.md` | Required network behavior and invariants |
-| `homelab/README.md` | Current topology and wiring |
-| `homelab/proxmox/interfaces` | Known-good Proxmox `/etc/network/interfaces` (CURRENT: `10.10.10.3` on `vmbr0.10`) |
-| `homelab/proxmox/interfaces.until-cutover` | Pre-cutover host snapshot (`192.168.50.200` on `vmbr1`; archive) |
-| `homelab/proxmox/README.md` | How a human copies host interfaces and runs `ifreload` |
-| `homelab/proxmox.md` | Host disks, guests, recovery |
-| `homelab/vyos/commands.txt` | Known-good VyOS configuration (`show configuration commands`) |
-| `homelab/vyos/config.boot` | Same config, tree form (read only; do not `load`) |
-| `homelab/vyos/setup.md` | How a human rebuilds or changes VyOS (IPv4 + WAN IPv6) |
-| `homelab/vyos/install.md` | How a human creates VM 100 |
-| `homelab/vyos/verify.md` | Checks after install or a significant VyOS change |
-| `homelab/vyos/ddns.md` | How a human points `nj.sumitgahoi.me` at the WAN address |
-| `homelab/ssh/` | Operator key and sshd drop-in; copy steps in `homelab/ssh/README.md` |
-| `homelab/cbs350/running-config` | Known-good switch running-config |
-| `homelab/cbs350/README.md` | How a human restores `running-config` onto the switch |
-| `homelab/unifi.md` | UniFi OS Server and U6+ (as-built) |
-| `homelab/tailscale-india/README.md` | Deprecated India-GW design; future Tailscale path |
-| `homelab/tailscale-india/setup.md` | How a human rebuilds deprecated India-GW (CT 108) |
-| `homelab/wireguard.md` | Pointer to the WireGuard runbook |
-| `homelab/wireguard/README.md` | WireGuard design: `wg0`, `wg1`, and `wg2` live |
-| `homelab/wireguard/wg0.md` | How a human applies Trusted WireGuard |
-| `homelab/wireguard/wg1.md` | How a human applies Guest WireGuard |
-| `homelab/wireguard/wg2.md` | How a human applies VLAN 40 → `asus-nuc` |
-| `homelab/tailscale-us/README.md` | US Tailscale guest — will not deploy |
-| `homelab/adguard/README.md` | AdGuard design (CURRENT) |
-| `homelab/adguard/setup.md` | How a human creates or rebuilds AdGuard (CT 110) and points VyOS at it |
-| `homelab/dev/README.md` | Dev VM design (CURRENT): VM 101, `10.10.10.10` |
-| `homelab/dev/setup.md` | How a human creates or rebuilds the Debian dev VM |
-| `homelab/beryl.md` | Beryl 7 travel router design (PLANNED). Not deployed |
-| `home-theatre/` | Signal path, channels |
-| `rack/` | U-layout, power |
-
-**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). VLAN 40 egress is VyOS `wg2` (`homelab/wireguard/wg2.md`). CT 108 is deprecated and is not that path; stop it and keep the disk. `homelab/vyos/commands.txt` matches the router, with WireGuard private keys redacted. AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). VyOS `wg0`, `wg1`, and `wg2` are live (`homelab/wireguard/`). Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
-
-Do not introduce Ansible, Terraform, generators, deployment scripts, or CI/CD for this homelab. Copy host interfaces from `homelab/proxmox/README.md`. Rebuild or change VyOS from `homelab/vyos/setup.md`. Operator SSH key: `homelab/ssh/README.md`.
+| Area | Start here |
+|------|------------|
+| Wiring and addresses | `homelab/README.md` |
+| Network behavior | `homelab/REQUIREMENTS.md` |
+| Which file owns a fact | `agent.md` |
+| Hardware | `inventory.md` |
+| Home theatre | `home-theatre/` |
+| Rack | `rack/` |

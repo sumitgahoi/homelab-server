@@ -2,6 +2,8 @@
 
 This document describes how to rebuild the VyOS router manually.
 
+Behavior: `../REQUIREMENTS.md`. Wiring: `../README.md`.
+
 The complete known-good configuration is stored in:
 
     commands.txt
@@ -49,34 +51,9 @@ The rebuild philosophy is:
 
 # Network Architecture
 
-VyOS is the only router between the homelab networks.
+Wiring and address plan: `../README.md`. Behavior: `../REQUIREMENTS.md`.
 
-```text
-                         Internet
-                            │
-                            │
-                         eth1 WAN
-                            │
-                     ┌──────┴──────┐
-                     │    VyOS     │
-                     └──────┬──────┘
-                            │
-               eth0 LAN trunk
-                            │
-              ┌─────────────┼──────────────┐
-              │             │              │
-          VLAN 10        VLAN 20        VLAN 30        VLAN 40
-          Trusted         Guest            IoT           India
-        10.10.10/24    10.10.20/24    10.10.30/24    10.10.40/24
-
-                     eth2 Services
-                            │
-                       10.10.0.1
-                            │
-                         vmbr-svc
-```
-
-Interfaces are intentionally pinned using permanent MAC addresses:
+Before continuing, the guest NICs must already match:
 
 ```text
 eth0 = LAN trunk   = 02:00:00:00:00:00
@@ -232,26 +209,7 @@ The firewall uses a positive allow-list design:
 default = DROP
 ```
 
-Important intended behavior:
-
-```text
-Trusted
-    → unrestricted routed access
-
-Guest
-    → Internet only
-
-IoT
-    → isolated
-
-India
-    → wg2 only
-    → cannot pivot into RFC1918 networks
-
-Services
-    → Internet
-    → cannot initiate connections into client VLANs
-```
+Who may reach what: `../REQUIREMENTS.md`. India forward accepts only out `wg2`.
 
 The first rule in both INPUT and FORWARD must allow only:
 

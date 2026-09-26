@@ -383,7 +383,7 @@ ssh dev
 
 # After it works
 
-In this repository, mark the guest CURRENT instead of PLANNED:
+These already record the guest as live. Update them if a rebuild changes an address or size:
 
 - the heading and table in `README.md` (this directory)
 - the guest row in `../proxmox.md`

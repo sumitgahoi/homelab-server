@@ -1,8 +1,6 @@
-# UniFi — CURRENT
+# UniFi
 
-As-built Wi-Fi controller and AP. Isolation, DHCP, NAT, and client default-gateway stay on VyOS (`vyos/commands.txt`, rebuild `vyos/setup.md`). India DNS is not VyOS recursion (`wireguard/wg2.md`). Do not treat UniFi as the house router.
-
-Policy: `REQUIREMENTS.md`. Wiring: `README.md`. Guest: `proxmox.md`.
+As-built controller and AP. Behavior: `REQUIREMENTS.md`. Wiring: `README.md`. Guest record: `proxmox.md`. Rebuild of the router: `vyos/setup.md`.
 
 ## UniFi OS Server
 

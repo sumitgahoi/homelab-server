@@ -68,7 +68,7 @@ Before changing Proxmox networking, VyOS, VM 100, VLANs, firewall, routing, DHCP
 1. Read this file.
 2. Read `homelab/REQUIREMENTS.md`.
 3. Read the relevant known-good snapshot and the matching runbook (table below).
-4. Determine CURRENT vs PLANNED vs DEFERRED.
+4. Determine as-built vs deferred (`homelab/README.md`, Still ahead). A PLANNED design such as Beryl stays in its own file.
 5. Check whether the requested change conflicts with a requirement or invariant.
 6. If it conflicts, **stop** and tell the owner before implementing it.
 7. If the owner intentionally changes a requirement, update `REQUIREMENTS.md` in the same change.
@@ -79,24 +79,25 @@ A documentation or snapshot change that alters described network behavior withou
 
 ## Docs
 
-One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFERRED**. Do not mix them.
+One fact, one file. The live network is as-built or deferred. PLANNED designs stay in their own files. Do not mix them.
 
 | Fact | Authority |
 |------|-----------|
 | Required behavior and invariants | `homelab/REQUIREMENTS.md` |
-| Current topology / wiring | `homelab/README.md` |
+| Current topology / wiring; deferred work | `homelab/README.md` (deferred: Still ahead) |
 | Proxmox host interfaces (known-good) | `homelab/proxmox/interfaces` (CURRENT). Archive: `interfaces.until-cutover` |
 | How to copy host interfaces | `homelab/proxmox/README.md` |
 | VyOS known-good CLI | `homelab/vyos/commands.txt` |
 | VyOS tree form (read only) | `homelab/vyos/config.boot` (do not `load`) |
 | How to rebuild / change VyOS | `homelab/vyos/setup.md` (IPv4 + WAN IPv6) |
+| VyOS checks | `homelab/vyos/verify.md` |
 | Cloudflare DDNS | `homelab/vyos/ddns.md` |
 | How to create VM 100 | `homelab/vyos/install.md` |
 | Switch configuration (known-good) | `homelab/cbs350/running-config` |
 | How to restore the switch | `homelab/cbs350/README.md` |
 | Operator SSH key | `homelab/ssh/README.md` |
 | UniFi as-built | `homelab/unifi.md` |
-| India-GW (DEPRECATED; future Tailscale path) | `homelab/tailscale-india/setup.md` |
+| India-GW (DEPRECATED; deprecated alternative) | `homelab/tailscale-india/setup.md` |
 | India-GW design notes (DEPRECATED) | `homelab/tailscale-india/README.md` |
 | WireGuard rebuild (`wg0`, `wg1`, `wg2`) | `homelab/wireguard/wg0.md`, `wg1.md`, `wg2.md` |
 | WireGuard design notes | `homelab/wireguard/README.md` |
@@ -113,7 +114,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 
 ## As-built (live)
 
-WAN cutover is complete. Proxmox mgmt is `10.10.10.3` on `vmbr0.10`. S33 is on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live. VLAN 40 egress is VyOS `wg2` to `asus-nuc` (`wireguard/wg2.md`). CT 108 (`10.10.0.5`) is deprecated and is not that path; stop it, keep the disk (`wireguard/wg2.md` section 7). `vyos/commands.txt` matches the router (WireGuard private keys redacted). AdGuard (CT 110, `10.10.0.4`) is live; VyOS Trusted/Guest/IoT forwarding upstream is `10.10.0.4`. VyOS WAN IPv6 on `eth1` only is live (LAN/Services stay IPv4). VyOS `wg0`, `wg1`, and `wg2` are live (`wireguard/`). Dev VM (VM 101, `10.10.10.10`) is live (`dev/`). Do not create CT 109.
+Wiring, addresses, and deferred work: `homelab/README.md`.
 
 ## Layout
 

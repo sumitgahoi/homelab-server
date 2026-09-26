@@ -1,38 +1,13 @@
-# AdGuard Home — CURRENT
+# AdGuard Home
 
-CT 110 at `10.10.0.4`. Rebuild: `setup.md`. Invariants: `../REQUIREMENTS.md`.
+CT 110 at `10.10.0.4` on `vmbr-svc`. Rebuild: `setup.md`. Behavior: `../REQUIREMENTS.md`. Addresses: `../README.md`.
 
-| Node | Where | IP | Role | State |
-|------|-------|----|------|--------|
-| `adguard` | LXC 110 on `vmbr-svc` | `10.10.0.4` | DNS only. VyOS upstream for Trusted, Guest, IoT | CURRENT |
+| Node | Where | IP | Role |
+|------|-------|----|------|
+| `adguard` | LXC 110 on `vmbr-svc` | `10.10.0.4` | DNS only. VyOS upstream for Trusted, Guest, and IoT |
 
-Gateway `10.10.0.1`. Do not reuse `.2` / `.3` (unused) / `.5`. No AdGuard DHCP.
-
-```text
-Trusted / Guest / IoT
-    → 10.10.x.1  (DHCP, unchanged)
-    → VyOS dns forwarding
-    → AdGuard 10.10.0.4
-         ├─ *.home.arpa
-         └─ DoT (US WAN via Services NAT)
-
-Remote WireGuard (`../wireguard/wg0.md` and `wg1.md`, both live)
-    → 10.10.80.1 or 10.10.81.1 (VyOS recursor)
-      not 10.10.0.4
-
-VLAN 40
-    → 1.1.1.1 via VyOS wg2
-```
-
-VyOS queries AdGuard as `10.10.0.1` (AdGuard Allowed clients). VLANs
-10/20/30 do not query `10.10.0.4` themselves. IoT Internet is out `eth1` only; DNS to `10.10.30.1`
-is VyOS input, and AdGuard’s DoT is Services→WAN. VLAN 40 stays on
-`1.1.1.1` via `wg2`.
-
-VyOS has one upstream (`10.10.0.4`). DHCP option 6 stays the VLAN
-gateway. AdGuard down → VLANs 10/20/30 lose DNS; VLAN 40 is unchanged.
-Trusted DHCP search domain is `home.arpa`. Guest/IoT can resolve `home.arpa` if they ask; they get no search domain.
-
-The AdGuard LXC’s own OS resolvers are `1.1.1.1` / `1.0.0.1`, not VyOS,
-so apt and DoT bootstrap do not depend on the recursor that depends on
-AdGuard.
+- No AdGuard DHCP. VLAN 40 does not use this guest (India resolver addresses: `../vyos/setup.md`).
+- Clients use the VLAN gateway. VyOS queries AdGuard as `10.10.0.1` (Allowed clients). VLANs 10/20/30 do not query `10.10.0.4`.
+- AdGuard’s public upstream is DoT, and that traffic leaves as Services → US WAN.
+- `wg0` / `wg1` DNS is the tunnel gateway (`10.10.80.1` / `10.10.81.1`), not `10.10.0.4` (`../wireguard/wg0.md`, `wg1.md`).
+- The LXC’s own resolvers are `1.1.1.1` / `1.0.0.1`, not VyOS, so apt and DoT bootstrap do not depend on AdGuard.

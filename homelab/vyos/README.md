@@ -13,9 +13,7 @@ config.boot
         = same config, tree form (read this; do not load)
 ```
 
-Git records both. A human applies `set` / `delete` from `commands.txt`, verifies, then updates Git.
-
-Do not introduce Ansible, Terraform, generators, or a script that bulk-applies `commands.txt`.
+Git records both. A human applies `set` / `delete` from `commands.txt`, verifies, then updates Git. Do not bulk-apply `commands.txt`.
 
 ## Files
 

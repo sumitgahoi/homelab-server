@@ -4,7 +4,7 @@
 the switch.
 
 This directory is a restore runbook plus that snapshot. A human uses the CBS350
-web UI. Do not wrap the restore in Ansible or a deploy script.
+web UI.
 
 It is kept as close as possible to the switch-generated backup. The only line
 removed before committing is:
@@ -124,17 +124,6 @@ Click **Apply**.
 
 Do not reboot the switch before this step.
 
-## Important ports
+## Ports
 
-    GE1       Proxmox nic0 LAN trunk
-    GE2       UniFi U6+
-    GE3-12    Trusted / VLAN 10
-    GE12      Reserved admin recovery port
-    GE13-22   IoT / VLAN 30
-    GE23-24   India / VLAN 40
-    GE25-28   SFP, administratively disabled
-
-GE2 uses VLAN 10 as its native VLAN. VLANs 20, 30 and 40 are carried tagged.
-
-VyOS is the router, DHCP server, DNS forwarder and firewall. The CBS350 performs
-Layer-2 switching only.
+Assignments: `../README.md`. This restore uses GE12 (admin OOB, VLAN 10). GE2 is native VLAN 10 with 20/30/40 tagged.

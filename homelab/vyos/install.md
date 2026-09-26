@@ -2,7 +2,7 @@
 
 Run when VM 100 is absent. After the guest OS exists, configure the router from `setup.md` using `commands.txt`. Do not seed the installer with a `config.boot` from Git.
 
-MACs are pinned on create (`02:00:00:00:00:00`–`:02`): `eth0` LAN / `eth1` WAN / `eth2` services.
+MACs are pinned on create (`02:00:00:00:00:00`–`:02`): `eth0` LAN / `eth1` WAN / `eth2` services. Do not delete and re-add the guest NICs; that renumbers them.
 
 ## Purpose
 

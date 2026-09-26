@@ -17,11 +17,9 @@ Mac (Cursor or VS Code Remote SSH)
 
 ## Why this shape
 
-The VM is a Trusted client, same as the Mac. `vmbr0` is the VLAN-aware LAN trunk. Proxmox `tag=10` puts the guest in VLAN 10, so the guest OS sees a normal untagged NIC. Trusted may use the Internet, Services, and VyOS/Proxmox management. Guest, IoT, and India still cannot open connections to it. No VyOS, switch, or host-bridge change.
+The VM is a Trusted client. `vmbr0` is the VLAN-aware LAN trunk; Proxmox `tag=10` puts the guest in VLAN 10, so the guest OS sees an untagged NIC. Services is the wrong network (`../REQUIREMENTS.md`). No VyOS, switch, or host-bridge change.
 
-Services (`vmbr-svc`) is the wrong place. That network must not initiate connections into Trusted.
-
-`10.10.10.10` is outside the DHCP pool (`.100`–`.250`) and avoids `.1` VyOS, `.2` CBS350, `.3` Proxmox, `.4` (deferred NAS), and `.99` (admin OOB). The address is static so SSH does not follow a lease. QEMU picks the MAC. Do not use `02:00:00:00:00:00`–`:02` (VyOS).
+`10.10.10.10` is outside the DHCP pool (`.100`–`.250`) and avoids `.1` VyOS, `.2` CBS350, `.3` Proxmox, `.4` (deferred NAS, `../README.md`), and `.99` (admin OOB). The address is static so SSH does not follow a lease. QEMU picks the MAC. Do not use `02:00:00:00:00:00`–`:02` (VyOS).
 
 ## Size
 
@@ -54,6 +52,6 @@ On the VM: Git, Docker Engine (so Dev Containers can use the Docker socket), `qe
 
 Language toolchains stay in the project. Each project under `~/code/` that needs one owns `~/code/<project>/.devcontainer/`. This runbook does not create a project.
 
-The guest is IPv4 only, like the other VLAN clients. DNS is `10.10.10.1` (VyOS, which forwards to AdGuard). Do not point the VM at `10.10.0.4`. No Tailscale on this VM. Away from home, reach it through Trusted WireGuard (`wg0`, live).
+The guest is IPv4 only. DNS is `10.10.10.1`. Do not point the VM at `10.10.0.4`. No Tailscale on this VM. Away from home, reach it through `wg0` (`../wireguard/wg0.md`).
 
 AdGuard rewrite `dev.home.arpa` → `10.10.10.10`. The Mac's SSH alias uses that name (`setup.md`).

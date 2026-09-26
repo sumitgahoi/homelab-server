@@ -38,4 +38,4 @@ Pre-run HDMI, speaker, LFE, and network between basement and family room: **done
 
 - Breaker 15 A → 20 A (12 AWG already in the wall; verify no 14 AWG in the run).
 - PS5 model (2020 disc / slim / digital) — console shelf width.
-- Camera VLAN and NAS: deferred (not current network requirements).
+- Camera VLAN and NAS: `homelab/README.md` (Still ahead).

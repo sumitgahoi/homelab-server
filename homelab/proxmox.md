@@ -1,6 +1,6 @@
 # Proxmox
 
-CURRENT: host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UI `https://10.10.10.3:8006`. SSH `root@10.10.10.3`. Known-good `proxmox/interfaces`. Copy and `ifreload`: `proxmox/README.md`. Topology: `README.md`. SSH key: `ssh/README.md`. Pre-cutover archive: `proxmox/interfaces.until-cutover`.
+Host `10.10.10.3/24` on `vmbr0.10`, gateway `10.10.10.1`. UI `https://10.10.10.3:8006`. SSH `root@10.10.10.3`. Interfaces: `proxmox/interfaces` (copy: `proxmox/README.md`; pre-cutover archive: `interfaces.until-cutover`). Wiring: `README.md`. SSH key: `ssh/README.md`.
 
 | Disk | Role |
 |------|------|
@@ -26,7 +26,7 @@ Create VM 100: `vyos/install.md`. Then configure from `vyos/setup.md` using `vyo
 
 ## VyOS down
 
-Mgmt does not hairpin through the router. DHCP will be dead.
+Tiers: `README.md`. Mgmt does not hairpin through the router. DHCP will be dead.
 
 1. CBS350 port 12 (or any VLAN 10 access). Static `10.10.10.99/24`, no gateway.
 2. `ping 10.10.10.3` → UI or SSH.
