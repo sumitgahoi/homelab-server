@@ -1,13 +1,17 @@
-# Tailscale India-GW — installed, not the VLAN 40 path
+# Tailscale India-GW — DEPRECATED
 
-Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. VLAN 40 now goes VyOS `wg2` → `asus-nuc` `wg-india` (`../wireguard/wg2.md`). This LXC is still installed at `10.10.0.5`. Table 40 does not point at it. Sections 6 and 6b passed. Retire CT 108 in `wg2.md` section 7 (stop first; destroy later). `../vyos/commands.txt` points table 40 at `wg2`; do not put `10.10.0.5` back. Rebuild of this LXC: `setup.md` (rollback only). Tailscale on `asus-nuc` stays permanently (travel and remote rescue). `wg2` must not change it.
+Do not run Tailscale on VyOS. VLAN 40 clients do not run Tailscale. Invariants: `../REQUIREMENTS.md`. Live VLAN 40 egress is VyOS `wg2` → `asus-nuc` `wg-india` (`../wireguard/wg2.md`). `../vyos/commands.txt` points table 40 at `wg2`. Do not put `10.10.0.5` back while that is the requirement.
 
-This directory is a **runbook plus design notes**. `setup.md` is the authoritative rebuild procedure. There is intentionally no automation around it.
+CT 108 (`tailscale-india`, `10.10.0.5`) is deprecated. This directory stays. It is the record of the old path and the procedure if Tailscale should carry VLAN 40 again. It is not current infrastructure. Do not apply `setup.md` to the live router.
+
+Stop the container. Do not destroy it in that sitting. Procedure: `../wireguard/wg2.md` section 7 (`pct set 108 --onboot 0`, then `pct stop 108`). Do not `tailscale logout`. `10.10.0.5` stays reserved until a later destroy. Tailscale on `asus-nuc` stays permanently (travel and remote rescue). `wg2` must not change it.
+
+This directory is a **runbook plus design notes**. `setup.md` is the rebuild procedure for this deprecated design. It is not the live VLAN 40 path. There is intentionally no automation around it.
 
 | Node | Where | IP | Role | State |
 |------|-------|----|------|--------|
 | `asus-nuc` | India (physical) | — | exit node | CURRENT (external) |
-| `tailscale-india` | LXC 108 on `vmbr-svc` | `10.10.0.5` | Former India-GW: `--exit-node=asus-nuc` only. No advertised routes. Not on the VLAN 40 path | installed |
+| `tailscale-india` | LXC 108 on `vmbr-svc` | `10.10.0.5` | Former India-GW: `--exit-node=asus-nuc` only. No advertised routes. Not on the VLAN 40 path | DEPRECATED — stop, keep the disk |
 
 Tag: `tag:homelab-india-gw`. Gateway `10.10.0.1`. Do not reuse `.2` (UniFi), `.3` (unused), or `.4` (AdGuard). One process cannot advertise a US exit and consume `asus-nuc`.
 
@@ -33,7 +37,7 @@ Return traffic is established/related through the same path. Trusted/Guest/Servi
 
 ## Why it fails closed
 
-This is the old CT 108 mechanism, kept for rollback. It is not how VLAN 40 fails closed today. Live fail-closed is table 40 → `wg2` plus the distance-254 blackhole (`../wireguard/wg2.md`).
+This is the old CT 108 mechanism, kept as the deprecated design. It is not how VLAN 40 fails closed today. Live fail-closed is table 40 → `wg2` plus the distance-254 blackhole (`../wireguard/wg2.md`).
 
 Positive allow-list, default deny:
 
@@ -66,9 +70,22 @@ If India-GW/Tailscale/`asus-nuc` is down, those DNS packets have no valid path. 
 
 No India IPv6 path is implemented. Interim: no IPv6 connectivity on VLAN 40 (`no-default-link-local` + `ipv6 disable-forwarding` on `eth0.40`; no RA/DHCPv6). Do not later enable US-side IPv6 on VLAN 40 as a bypass.
 
-## Rebuild
+## If Tailscale carries VLAN 40 again (DEFERRED)
 
-Follow `setup.md` one change at a time. It is the known-good deployment for CT 108, including TUN passthrough, forwarding, Tailscale, nftables, VLAN 40 return routing, table 52, the priority-2500 main-table exception, `india-return-route.service`, why `onlink` is required, DNS/location leak tests, IPv6 restrictions, fail-closed tests, and reboot persistence.
+Not current. `wg2` stays the only India egress until `../REQUIREMENTS.md` is changed on purpose. One egress. This is not a second path beside `wg2`, and it is not a fallback when `wg2` is down.
+
+The design is the one already recorded above. VyOS policy-routes `10.10.40.0/24` to `10.10.0.5`. CT 108 consumes `asus-nuc` as an exit node and does not advertise routes. Clients still do not run Tailscale. Tailscale still does not run on VyOS. Fail-closed is the LXC forward and NAT policy in this file, not table 40 → `wg2`.
+
+Before any command in `setup.md`:
+
+1. Change the India egress requirement from `wg2` to this LXC, in the same sitting as the cut.
+2. If the container was only stopped, `pct start 108` and confirm `tailscale0` and the exit node. Then apply the VyOS half from `setup.md` (table 40 next-hop `10.10.0.5`, forward rule 400 out `eth2`). Do not leave `wg2` and this next-hop as two defaults for VLAN 40.
+3. If the container was destroyed, follow `setup.md` from the start, including a new Tailscale login. `10.10.0.5` is that guest again.
+4. `wg2` may stay up for Trusted SSH to `10.10.82.2`. It must not be the VLAN 40 default while this path is the requirement.
+
+## Rebuild record
+
+`setup.md` is that future procedure, and the known-good deployment of the deprecated guest. Follow it one change at a time. It includes TUN passthrough, forwarding, Tailscale, nftables, VLAN 40 return routing, table 52, the priority-2500 main-table exception, `india-return-route.service`, why `onlink` is required, DNS/location leak tests, IPv6 restrictions, fail-closed tests, and reboot persistence. Step 7 in that file points VLAN 40 at `10.10.0.5`. Do not apply it while table 40 uses `wg2`.
 
 Debian LXC on `vmbr-svc`. 1 vCPU / 512 MiB unless that proves too small. Static `10.10.0.5/24`, gateway `10.10.0.1`. Hostname `tailscale-india`. Needs `/dev/net/tun`. IPv6 forwarding off.
 

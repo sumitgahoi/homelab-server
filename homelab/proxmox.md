@@ -19,10 +19,10 @@ Optional BIOS: PL1 = PL2 = 65 W for 24/7. Apt: pve-no-subscription.
 | vyos | VM 100 | 2 | 4096 MiB | `vmbr0` + `vmbr1` + `vmbr-svc` | `10.10.10.1` |
 | unifi-os-server | LXC 107 | 2 | 4096 MiB | `vmbr-svc` | `10.10.0.2` |
 | adguard | LXC 110 | 1 | 512 MiB | `vmbr-svc` | `10.10.0.4` (CURRENT) |
-| tailscale-india | LXC 108 | 1 | 512 MiB | `vmbr-svc` + TUN | `10.10.0.5` (installed; VLAN 40 uses `wg2`) |
+| tailscale-india | LXC 108 | 1 | 512 MiB | `vmbr-svc` + TUN | `10.10.0.5` (DEPRECATED; stop, keep the disk) |
 | dev | VM 101 | 4 | 16384 MiB | `vmbr0` tag 10 | `10.10.10.10` (CURRENT) |
 
-Create VM 100: `vyos/install.md`. Then configure from `vyos/setup.md` using `vyos/commands.txt`. Locked NICs/MACs: `README.md`. UniFi OS Server: `unifi.md`. India-GW: `tailscale-india/setup.md` (rollback only; VLAN 40 is `wireguard/wg2.md`). AdGuard: `adguard/setup.md` (CURRENT). Dev VM: `dev/setup.md` (CURRENT). WireGuard: `wg0`, `wg1`, and `wg2` live. Do not create CT 109.
+Create VM 100: `vyos/install.md`. Then configure from `vyos/setup.md` using `vyos/commands.txt`. Locked NICs/MACs: `README.md`. UniFi OS Server: `unifi.md`. India-GW: `tailscale-india/` (DEPRECATED; VLAN 40 is `wireguard/wg2.md`). AdGuard: `adguard/setup.md` (CURRENT). Dev VM: `dev/setup.md` (CURRENT). WireGuard: `wg0`, `wg1`, and `wg2` live. Do not create CT 109.
 
 ## VyOS down
 

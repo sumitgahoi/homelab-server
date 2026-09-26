@@ -1,7 +1,7 @@
 # wg2 — VLAN 40 to asus-nuc
 
-Live. Table 40 sends VLAN 40 out `wg2`. CT 108 is still installed and
-is not the path. Dialect: rolling `2026.09.16-0028`. Do not create
+Live. Table 40 sends VLAN 40 out `wg2`. CT 108 is deprecated and
+is not the path. Stop it in section 7; keep the disk. Dialect: rolling `2026.09.16-0028`. Do not create
 CT 109.
 
 `../vyos/commands.txt` and `../vyos/config.boot` include this
@@ -101,8 +101,8 @@ Tailscale is the session that still connects.
 
 # Still open
 
-- CT 108 is still present. Sections 6 and 6b passed, so section 7 may
-  stop it. Do not destroy it in that same sitting.
+- CT 108 is deprecated. Sections 6 and 6b passed, so section 7
+  stops it and keeps the disk. Do not destroy it in that same sitting.
 
 ---
 
@@ -397,7 +397,7 @@ Do not `systemctl restart wg-india-nft.service` as a routine edit.
 
 ---
 
-# 3 — Handshake (CT 108 still installed, not serving VLAN 40)
+# 3 — Handshake
 
 From Trusted:
 
@@ -499,9 +499,9 @@ set firewall ipv4 forward filter rule 400 description 'India Internet via wg2'
 ```
 
 `interface` is the tag under `route` (same shape as the existing
-`next-hop`). Rule 390 (India must not pivot to RFC1918) stays. Its
-description in `commands.txt` still says `via India-GW`. The PBR
-description still says `uses India-GW`. Wording only.
+`next-hop`). Rule 390 (India must not pivot to RFC1918) stays. The
+rule 390 and PBR-INDIA descriptions name that behavior and `wg2`, not
+India-GW.
 No India masquerade on `eth1`. DNS still `1.1.1.1` via PBR. `eth0.40`
 IPv6 lock stays. Do not set `fwmark` on `wg2`.
 
@@ -589,15 +589,31 @@ from the Trusted SSH session before any other change.
 
 ---
 
-# 7 — Retire CT 108 (only after sections 6 and 6b)
+# 7 — Stop deprecated CT 108
 
-Those sections passed. This one has not. Table 40 already does not
-mention `10.10.0.5`. The LXC is still there. `pct stop 108`. Repeat the
-VLAN 40 Indian-egress test. If anything regresses, `pct start 108` and
-put table 40 back to `10.10.0.5` / rule 400 `eth2`.
+Sections 6 and 6b passed. Table 40 does not mention `10.10.0.5`.
+The LXC is deprecated. The disk stays. This sitting only stops it.
 
-When stable, destroy CT 108 in a later sitting. Do not remove Tailscale
-from the NUC.
+On Proxmox:
+
+```bash
+pct set 108 --onboot 0
+pct stop 108
+```
+
+Do not `pct enter 108` and run `tailscale logout`. Do not `pct destroy 108`.
+
+Repeat the VLAN 40 Indian-egress test. Traffic must still leave via `wg2`.
+
+`pct start 108` does not put VLAN 40 back on Tailscale. Table 40 is
+`wg2`. A regression is a `wg2` problem. Fix that. Restoring the old
+path is `../tailscale-india/setup.md` and a requirements change, not
+this sitting.
+
+Destroy the container in a later sitting, after VLAN 40 has stayed
+healthy with CT 108 stopped (normal use, and a VyOS or Proxmox reboot).
+Until then `10.10.0.5` stays reserved. Do not remove Tailscale from
+the NUC.
 
 ---
 
@@ -616,6 +632,7 @@ from the NUC.
 - Do not stop Tailscale except in section 6b, and do not leave it stopped.
 - Do not change the NUC default route.
 - Do not destroy CT 108 in the same sitting as `pct stop 108`.
+- Do not `tailscale logout` on CT 108 when stopping it.
 - Do not add `wg2` to `IF-INTERNAL`.
 - Do not enable IPv6 inside `wg2`.
 - Do not assign DHCPv6-PD to a LAN VIF or `eth2`.

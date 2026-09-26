@@ -21,7 +21,7 @@ Catalog only. Design lives in the domain folder.
 | LG OLED 65″ B7 | family room | `home-theatre/` |
 | 3× B&W CWM73 S2 · 2× CWM663 · 2× CCM662 | family room | `home-theatre/` |
 | HSU VTF-15H MK2 | family room | `home-theatre/` |
-| `asus-nuc` (Tailscale India exit) | India (physical) | `homelab/tailscale-india/setup.md` |
+| `asus-nuc` (Tailscale India exit, `wg-india`) | India (physical) | `homelab/wireguard/wg2.md` |
 | GL.iNet GL-MT3600BE Beryl 7 (dual-band Wi-Fi 7 travel router) | travel | — |
 
 Pre-run HDMI, speaker, LFE, and network between basement and family room: **done**.

@@ -27,8 +27,8 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `homelab/cbs350/running-config` | Known-good switch running-config |
 | `homelab/cbs350/README.md` | How a human restores `running-config` onto the switch |
 | `homelab/unifi.md` | UniFi OS Server and U6+ (as-built) |
-| `homelab/tailscale-india/README.md` | India-GW design and fail-closed notes |
-| `homelab/tailscale-india/setup.md` | How a human rebuilds India-GW (CT 108) |
+| `homelab/tailscale-india/README.md` | Deprecated India-GW design; future Tailscale path |
+| `homelab/tailscale-india/setup.md` | How a human rebuilds deprecated India-GW (CT 108) |
 | `homelab/wireguard.md` | Pointer to the WireGuard runbook |
 | `homelab/wireguard/README.md` | WireGuard design: `wg0`, `wg1`, and `wg2` live |
 | `homelab/wireguard/wg0.md` | How a human applies Trusted WireGuard |
@@ -43,6 +43,6 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `home-theatre/` | Signal path, channels |
 | `rack/` | U-layout, power |
 
-**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). VLAN 40 egress is VyOS `wg2` (`homelab/wireguard/wg2.md`). CT 108 is still installed and is not that path. `homelab/vyos/commands.txt` matches the router, with WireGuard private keys redacted. AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). VyOS `wg0`, `wg1`, and `wg2` are live (`homelab/wireguard/`). Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
+**As-built:** WAN cutover is complete. Proxmox `10.10.10.3` on `vmbr0.10`. S33 on `nic1`; house ASUS retired. UniFi OS Server and U6+ are live (`homelab/unifi.md`). VLAN 40 egress is VyOS `wg2` (`homelab/wireguard/wg2.md`). CT 108 is deprecated and is not that path; stop it and keep the disk. `homelab/vyos/commands.txt` matches the router, with WireGuard private keys redacted. AdGuard is live (`homelab/adguard/`). VyOS is IPv6-capable on `eth1` only (LAN/Services IPv4). VyOS `wg0`, `wg1`, and `wg2` are live (`homelab/wireguard/`). Dev VM is live (`homelab/dev/`). Do not deploy `tailscale-us`.
 
 Do not introduce Ansible, Terraform, generators, deployment scripts, or CI/CD for this homelab. Copy host interfaces from `homelab/proxmox/README.md`. Rebuild or change VyOS from `homelab/vyos/setup.md`. Operator SSH key: `homelab/ssh/README.md`.

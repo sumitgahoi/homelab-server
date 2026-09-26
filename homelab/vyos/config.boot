@@ -132,7 +132,7 @@ firewall {
                 }
                 rule 390 {
                     action "drop"
-                    description "India must not pivot to RFC1918 via India-GW"
+                    description "India must not pivot to RFC1918"
                     destination {
                         group {
                             network-group "NET-RFC1918"
@@ -584,7 +584,7 @@ nat {
 }
 policy {
     route PBR-INDIA {
-        description "VLAN 40 uses India-GW, not the main default route"
+        description "VLAN 40 uses wg2, not the main default route"
         interface "eth0.40"
         rule 10 {
             description "India source lookup table 40"

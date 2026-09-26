@@ -9,7 +9,7 @@
 | `wg2` | VyOS | `10.10.82.0/30` | UDP `51822` | `wg2.md` — VLAN 40 → `asus-nuc` `.2`. Live |
 | `wg-india` | NUC | same `/30` | — | NUC side of `wg2`. Linux `wg-quick`, not a VyOS name. Live |
 
-VyOS rolling `2026.09.16-0028` only accepts WireGuard interface names `wgN`. `wg0`, `wg1`, and `wg2` are already up. CT 108 is still installed. It is not the VLAN 40 path. Sections 6 and 6b passed. Stop it in `wg2.md` section 7; destroy it later.
+VyOS rolling `2026.09.16-0028` only accepts WireGuard interface names `wgN`. `wg0`, `wg1`, and `wg2` are already up. CT 108 is deprecated. It is not the VLAN 40 path. Sections 6 and 6b passed. Stop it in `wg2.md` section 7; keep the disk. Destroy it in a later sitting.
 
 This directory is a **runbook plus design notes**. There is intentionally no automation around it.
 
@@ -62,7 +62,7 @@ The registered zone is `sumitgahoi.me`. WireGuard does not require split DNS nam
 
 ## India (`wg2`) vs India-GW
 
-CT 108 exists because Tailscale must not run on VyOS. `wg2` has replaced it on the path. Sections 6 and 6b passed. The LXC is still installed until `wg2.md` section 7.
+CT 108 existed because Tailscale must not run on VyOS. `wg2` replaced it on the path. The LXC is deprecated. Sections 6 and 6b passed. Stop it in `wg2.md` section 7 and keep the disk. The Tailscale procedure stays in `../tailscale-india/` for a later choice, and is not current.
 
 The NUC **initiates** (India is CGNAT). `PersistentKeepalive` keeps the mapping. VyOS then sends VLAN 40 through that session.
 
@@ -72,7 +72,7 @@ The NUC **initiates** (India is CGNAT). `PersistentKeepalive` keeps the mapping.
 
 NUC nftables (`table ip wg-india`, device `enp1s0`) accepts forwarded VLAN 40 only out the India WAN NIC, with `policy accept` so Tailscale forwarding is left alone. NAT for `10.10.40.0/24` is on that NIC, not on VyOS. `nftables.service` stays disabled. `wg-india-nft.service` loads the table; `wg-quick@wg-india` `Requires=` and `After=` that unit.
 
-Sections 6 and 6b passed. CT 108 is still installed. Stop it in `wg2.md` section 7; destroy it in a later sitting.
+Sections 6 and 6b passed. CT 108 is deprecated. Stop it in `wg2.md` section 7; keep the disk. Destroy it in a later sitting.
 
 ## Travel / Beryl
 

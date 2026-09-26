@@ -58,4 +58,4 @@ Expect forward:
 
 India must not appear in source NAT out eth1. DNS forwarding must not listen on 10.10.40.1.
 
-India path tests: `../wireguard/wg2.md`. CT 108 is still installed and is not the path. `ping 10.10.82.1` from the NUC is expected to fail.
+India path tests: `../wireguard/wg2.md`. CT 108 is deprecated and is not the path. `ping 10.10.82.1` from the NUC is expected to fail.

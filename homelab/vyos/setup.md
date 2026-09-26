@@ -23,8 +23,9 @@ before a GUA).
 mix a second WireGuard pass into this rebuild. Table 40 is
 `interface wg2`. Do not point it at `10.10.0.5`. NUC `wg-india` is
 `../wireguard/wg2.md` (`Endpoint` `nj.sumitgahoi.me:51822`, no `PostDown`, nft unit). DDNS: `ddns.md`.
-Do not create CT 109. Sections 6 and 6b passed. CT 108 stays
-installed until `wg2.md` section 7. Each WireGuard `private-key` in
+Do not create CT 109. Sections 6 and 6b passed. CT 108 is
+deprecated. Stop it in `../wireguard/wg2.md` section 7 and keep the
+disk. Each WireGuard `private-key` in
 `commands.txt` is the word `redacted`; generate a new key on a rebuild
 instead of pasting that word.
 
@@ -244,7 +245,7 @@ IoT
     → isolated
 
 India
-    → India-GW only
+    → wg2 only
     → cannot pivot into RFC1918 networks
 
 Services
@@ -343,7 +344,7 @@ and does NOT allow:
 10.10.40.0/24
 ```
 
-India DNS is handled as ordinary Internet traffic through India-GW.
+India DNS is ordinary forwarded traffic through table 40 / `wg2`.
 
 CURRENT forwarding for Trusted/Guest/IoT is a single upstream, AdGuard
 `10.10.0.4` (`commands.txt`). Rebuild: `../adguard/setup.md` after
@@ -403,7 +404,8 @@ set protocols static table 40 ...
 ```
 
 `commands.txt` sends table 40 out `wg2`. Do not put `10.10.0.5`
-back. The old India-GW path is rollback only (`../tailscale-india/setup.md`).
+back. The deprecated Tailscale path is `../tailscale-india/setup.md`
+and is not this rebuild.
 
 ```text
 10.10.40.0/24
@@ -573,7 +575,7 @@ IPv6 does not bypass policy
 Also perform the fail-closed test described in:
 
 ```text
-../tailscale-india/setup.md
+../wireguard/wg2.md
 ```
 
 ---
