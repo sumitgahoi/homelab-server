@@ -22,6 +22,7 @@ One fact, one file. Label **CURRENT / as-built**, **PLANNED**, and **DEFERRED**.
 | `homelab/vyos/setup.md` | How a human rebuilds or changes VyOS (IPv4 + WAN IPv6) |
 | `homelab/vyos/install.md` | How a human creates VM 100 |
 | `homelab/vyos/verify.md` | Checks after install or a significant VyOS change |
+| `homelab/vyos/ddns.md` | How a human points `nj.sumitgahoi.me` at the WAN address |
 | `homelab/ssh/` | Operator key and sshd drop-in; copy steps in `homelab/ssh/README.md` |
 | `homelab/cbs350/running-config` | Known-good switch running-config |
 | `homelab/cbs350/README.md` | How a human restores `running-config` onto the switch |

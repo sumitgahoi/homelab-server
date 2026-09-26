@@ -668,6 +668,18 @@ service {
         }
     }
     dns {
+        dynamic {
+            name cloudflare {
+                address {
+                    interface "eth1"
+                }
+                host-name "nj.sumitgahoi.me"
+                ip-version "ipv4"
+                password "redacted"
+                protocol "cloudflare"
+                zone "sumitgahoi.me"
+            }
+        }
         forwarding {
             allow-from "10.10.10.0/24"
             allow-from "10.10.20.0/24"

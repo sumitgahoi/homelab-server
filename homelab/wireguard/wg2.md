@@ -58,13 +58,7 @@ Philosophy: one change, understand, verify, continue. No automation.
 
 # As-built (first deployment)
 
-NUC `Endpoint` is the literal address `73.195.208.10:51822` (the
-`eth1` IPv4 at deploy time). It is not a name. Xfinity can change it;
-when it does, the handshake dies and VLAN 40 fails closed. Trusted SSH
-to `10.10.82.2` dies with it. Fix the `Endpoint` from Tailscale.
-Cloudflare DDNS and `Endpoint =
-sumitgahoi.me:51822` are follow-up. Do not publish a dual-stack name.
-Why the steady name is A-only: `README.md`.
+NUC `Endpoint` is `nj.sumitgahoi.me:51822`. VyOS publishes that A record from `eth1` (`../vyos/ddns.md`). `wg show` prints the resolved address. A timer on the NUC re-resolves the name. If the handshake dies, fix it from Tailscale. Trusted SSH to `10.10.82.2` dies with the tunnel. Do not publish an AAAA on that name. Why it is A-only: `README.md`.
 
 Table 40:
 
@@ -107,9 +101,6 @@ Tailscale is the session that still connects.
 
 # Still open
 
-- Cloudflare DDNS so `sumitgahoi.me` is an A record of the `eth1` IPv4,
-  then change the NUC `Endpoint` off the literal address. No API token
-  in Git.
 - CT 108 is still present. Sections 6 and 6b passed, so section 7 may
   stop it. Do not destroy it in that same sitting.
 
@@ -122,8 +113,8 @@ show interfaces ethernet eth1
 ```
 
 From a house client, `curl -4 https://ifconfig.me` must equal the
-`eth1` IPv4 and be public (not `100.64.0.0/10`, not RFC1918). Write
-that address down. The NUC `Endpoint` has to use it until DDNS exists.
+`eth1` IPv4 and be public (not `100.64.0.0/10`, not RFC1918). The NUC
+dials `nj.sumitgahoi.me` (`../vyos/ddns.md`).
 
 IPv6 is usable when `eth1` has a GUA. On VyOS:
 
@@ -242,13 +233,12 @@ PostUp = ip route replace 10.10.80.0/24 dev %i
 
 [Peer]
 PublicKey = SERVER_PUBLIC_WG_INDIA
-Endpoint = 73.195.208.10:51822
+Endpoint = nj.sumitgahoi.me:51822
 AllowedIPs = 10.10.82.1/32, 10.10.40.0/24, 10.10.10.0/24, 10.10.80.0/24
 PersistentKeepalive = 25
 ```
 
-Replace the `Endpoint` address if `eth1` has moved. Until DDNS, this
-is a literal, not `sumitgahoi.me`.
+The timer in `../vyos/ddns.md` re-resolves that name. Stock `wg` will not.
 
 `Address = 10.10.82.2/30` already installs `10.10.82.0/30 dev wg-india`,
 so there is no host route for `10.10.82.1`. `Table = off` installs
@@ -403,9 +393,7 @@ nft list table ip wg-india
 If the tunnel is inactive, `systemctl start wg-quick@wg-india.service`.
 Do not `systemctl restart wg-india-nft.service` as a routine edit.
 
-The literal `Endpoint` does not track Xfinity. After DDNS, the NUC
-must re-resolve `sumitgahoi.me` (timer or `wg syncconf`). Stock `wg`
-will not.
+`wg-india-reresolve.timer` re-resolves `nj.sumitgahoi.me` (`../vyos/ddns.md`). Stock `wg` will not.
 
 ---
 

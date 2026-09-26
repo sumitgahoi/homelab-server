@@ -1,6 +1,6 @@
 # WireGuard
 
-`wg0` is live (`wg0.md`, peer `sumit-iphone`). `wg1` is live (`wg1.md`, `10.10.81.1/24`). `wg2` is live (`wg2.md`, peer `asus-nuc`); VLAN 40 uses it. The NUC `Endpoint` is still the literal `eth1` IPv4, not `sumitgahoi.me`. WAN cutover is complete (`S33` on `nic1`, house ASUS retired). WAN IPv6 on `eth1` is CURRENT (`../vyos/setup.md`). All three are in `../vyos/commands.txt` (`private-key` is `redacted`). Invariants: `../REQUIREMENTS.md`.
+`wg0` is live (`wg0.md`, peer `sumit-iphone`). `wg1` is live (`wg1.md`, `10.10.81.1/24`). `wg2` is live (`wg2.md`, peer `asus-nuc`); VLAN 40 uses it. The NUC `Endpoint` is `nj.sumitgahoi.me:51822` (`../vyos/ddns.md`). WAN cutover is complete (`S33` on `nic1`, house ASUS retired). WAN IPv6 on `eth1` is CURRENT (`../vyos/setup.md`). All three are in `../vyos/commands.txt` (`private-key` is `redacted`). Invariants: `../REQUIREMENTS.md`.
 
 | Interface | Where | Prefix | Listen | Procedure |
 |-----------|--------|--------|--------|-----------|
@@ -58,9 +58,7 @@ Do not assign a delegated prefix to `eth0.x` or `eth2`. Do not enable RA. IPv6 f
 | CGNAT / no public IPv4, GUA present | AAAA name only (client needs IPv6). |
 | Neither | Dead. No VPS. |
 
-The registered zone is `sumitgahoi.me`. WireGuard does not require split DNS names. One `Endpoint` uses whatever address the resolver returns, and many clients try AAAA first and do not fall back. The NUC has no physical access. Its steady `Endpoint` is the A-only name `sumitgahoi.me`. Live, that name is not in use yet: `wg-india` dials the literal `eth1` IPv4 (`wg2.md`) until Cloudflare DDNS exists. The spare AAAA-only name is `v6.sumitgahoi.me`, a separate profile when `eth1` has a GUA. Use that profile only after a client is shown to prefer A or to fall back.
-
-Confirm `curl -4 https://ifconfig.me` matches the `eth1` IPv4 before publishing an A record.
+The registered zone is `sumitgahoi.me`. WireGuard does not require split DNS names. One `Endpoint` uses whatever address the resolver returns, and many clients try AAAA first and do not fall back. The NUC has no physical access. Its `Endpoint` is the A-only name `nj.sumitgahoi.me` (VyOS DDNS, `../vyos/ddns.md`). The spare AAAA-only name is `v6.sumitgahoi.me`, a separate profile when `eth1` has a GUA. Use that profile only after a client is shown to prefer A or to fall back. Do not put an AAAA on `nj`.
 
 ## India (`wg2`) vs India-GW
 

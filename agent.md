@@ -90,6 +90,7 @@ One fact, one file. Distinguish **CURRENT / as-built**, **PLANNED**, and **DEFER
 | VyOS known-good CLI | `homelab/vyos/commands.txt` |
 | VyOS tree form (read only) | `homelab/vyos/config.boot` (do not `load`) |
 | How to rebuild / change VyOS | `homelab/vyos/setup.md` (IPv4 + WAN IPv6) |
+| Cloudflare DDNS | `homelab/vyos/ddns.md` |
 | How to create VM 100 | `homelab/vyos/install.md` |
 | Switch configuration (known-good) | `homelab/cbs350/running-config` |
 | How to restore the switch | `homelab/cbs350/README.md` |

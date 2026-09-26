@@ -36,8 +36,9 @@ that address down. The phone test below has to match it.
 
 If IPv4 is not public and `eth1` has no GUA, stop. No VPS.
 
-`Endpoint` is the A name `sumitgahoi.me`. A spare AAAA profile uses
-`v6.sumitgahoi.me`. Why those are separate names: `README.md`.
+`Endpoint` is the A name `nj.sumitgahoi.me` (`../vyos/ddns.md`). A spare
+AAAA profile uses `v6.sumitgahoi.me`. Why those are separate names:
+`README.md`.
 `firewall ipv6` default-drop must already exist (`../vyos/setup.md`).
 
 ---
@@ -102,7 +103,7 @@ DNS = 10.10.80.1
 
 [Peer]
 PublicKey = VYOS_WG0_PUBLIC
-Endpoint = sumitgahoi.me:51820
+Endpoint = nj.sumitgahoi.me:51820
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
 ```
