@@ -50,6 +50,7 @@ Expect forward:
 - established/related → accept
 - Trusted → accept
 - Guest → eth1 → accept
+- IoT → eth1 → accept (rule 250)
 - Services → eth1 → accept
 - India dest RFC1918 → drop
 - India → `wg2` → accept (rule 400)

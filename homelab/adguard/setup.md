@@ -12,9 +12,10 @@ Trusted / Guest / IoT  →  10.10.x.1  →  VyOS  →  10.10.0.4 AdGuard
 VLAN 40                →  1.1.1.1 via VyOS wg2  (not this guest)
 ```
 
-IoT still has no Internet (forward default-drop, no IoT→`eth1` accept).
+IoT may use the Internet out `eth1` only (forward rule 250, NAT rule 120).
 Its DNS is VyOS **input** on `10.10.30.1`, then VyOS queries AdGuard.
-AdGuard’s DoT leaves as Services traffic. Do not add an IoT WAN rule.
+AdGuard’s DoT leaves as Services traffic. Do not give IoT a forward
+accept except out `eth1`.
 
 ```text
 10.10.0.1    VyOS eth2
@@ -227,7 +228,7 @@ Expect answers. `dig @10.10.0.4` from Trusted must fail.
 Guest: `dig @10.10.20.1 example.com` works; `dig @10.10.0.4` fails.
 
 IoT: `dig @10.10.30.1 example.com` works (VyOS → AdGuard). `ping 1.1.1.1`
-fails. That is required. Do not add IoT → WAN.
+works. `ping 10.10.10.1` still fails. IoT forward is out `eth1` only.
 
 India: DHCP DNS still `1.1.1.1` / `1.0.0.1`. `dig @10.10.40.1` fails.
 `dig @1.1.1.1` and `curl -4 https://ifconfig.me` still go via India.

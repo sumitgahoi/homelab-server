@@ -108,6 +108,16 @@ firewall {
                         }
                     }
                 }
+                rule 250 {
+                    action "accept"
+                    description "IoT to WAN"
+                    outbound-interface {
+                        name "eth1"
+                    }
+                    source {
+                        address "10.10.30.0/24"
+                    }
+                }
                 rule 300 {
                     action "accept"
                     description "Services to WAN"
@@ -553,6 +563,18 @@ nat {
             }
             source {
                 address "10.10.20.0/24"
+            }
+            translation {
+                address "masquerade"
+            }
+        }
+        rule 120 {
+            description "NAT IoT to WAN"
+            outbound-interface {
+                name "eth1"
+            }
+            source {
+                address "10.10.30.0/24"
             }
             translation {
                 address "masquerade"

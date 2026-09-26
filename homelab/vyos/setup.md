@@ -550,7 +550,7 @@ Verify:
 
 ```text
 DHCP works
-Internet blocked
+Internet works
 Internal networks blocked
 ```
 

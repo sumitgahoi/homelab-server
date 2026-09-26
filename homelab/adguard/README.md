@@ -25,7 +25,7 @@ VLAN 40
 ```
 
 VyOS queries AdGuard as `10.10.0.1` (AdGuard Allowed clients). VLANs
-10/20/30 do not query `10.10.0.4` themselves. IoT still has no Internet; DNS to `10.10.30.1`
+10/20/30 do not query `10.10.0.4` themselves. IoT Internet is out `eth1` only; DNS to `10.10.30.1`
 is VyOS input, and AdGuard’s DoT is Services→WAN. VLAN 40 stays on
 `1.1.1.1` via `wg2`.
 
